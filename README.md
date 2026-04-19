@@ -8,6 +8,11 @@ Built as part of my journey toward AWS Security certification while developing h
 
 ## Live Demo
 
+**[▶ Open the live app →](https://brandobank.github.io/aws-security-study-guide/)**
+
+*(GitHub Pages — loads directly in your browser, no download needed)*
+
+
 Download [`AWS_SCS-C03_Study_Guide.html`](./AWS_SCS-C03_Study_Guide.html), open it in any browser, and it works — fully offline.
 
 ---
