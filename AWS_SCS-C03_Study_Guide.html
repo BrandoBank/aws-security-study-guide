@@ -1,0 +1,2032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>AWS SCS-C03 Study Guide</title>
+<style>
+  :root {
+    --bg: #000000; --bg2: #05080f; --bg3: #0c1525; --border: rgba(255,232,31,0.18);
+    --text: #dce8ff; --muted: #6a8fb0; --accent: #FFE81F; --accent2: #4fc3f7;
+    --green: #00d68f; --red: #ff4444; --purple: #b388ff; --orange: #ff9f43;
+    --card: #030810; --shadow: 0 4px 32px rgba(0,0,0,0.95);
+  }
+  .light {
+    --bg: #f5e6c8; --bg2: #fef9ef; --bg3: #eddfc0; --border: #c8a84b;
+    --text: #1a0e00; --muted: #7a5a20; --accent: #b08800; --accent2: #0277bd;
+    --green: #1a7a4a; --red: #c0392b; --purple: #6a1a9a; --orange: #c55a00;
+    --card: #fef9ef; --shadow: 0 4px 24px rgba(0,0,0,0.15);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.6; min-height: 100vh; }
+
+  /* STARFIELD CANVAS */
+  #starfield { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  .light #starfield { display: none; }
+
+  /* HEADER */
+  .header { background: rgba(0,0,0,0.92); border-bottom: 1px solid rgba(255,232,31,0.3); padding: 10px 16px; position: sticky; top: 0; z-index: 100; display: flex; align-items: center; gap: 12px; backdrop-filter: blur(12px); }
+  .light .header { background: rgba(254,249,239,0.96); border-bottom: 1px solid var(--border); }
+  .header-logo { display: flex; flex-direction: column; flex: 1; }
+  .header-title { font-size: 17px; font-weight: 900; color: var(--accent); letter-spacing: 3px; text-transform: uppercase; line-height: 1.1; text-shadow: 0 0 20px rgba(255,232,31,0.5); }
+  .header-sub { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 1px; }
+  .btn-icon { background: rgba(255,232,31,0.08); border: 1px solid rgba(255,232,31,0.25); color: var(--accent); padding: 6px 10px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+  .btn-icon:hover { background: var(--accent); color: #000; border-color: var(--accent); box-shadow: 0 0 12px rgba(255,232,31,0.4); }
+  .light .btn-icon { background: var(--bg3); border-color: var(--border); color: var(--text); }
+
+  /* TABS */
+  .tabs { display: flex; background: rgba(0,0,0,0.88); border-bottom: 1px solid rgba(255,232,31,0.2); overflow-x: auto; scrollbar-width: none; padding: 0 8px; position: sticky; top: 53px; z-index: 99; backdrop-filter: blur(12px); }
+  .light .tabs { background: rgba(254,249,239,0.96); border-bottom-color: var(--border); }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { padding: 12px 14px; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; transition: all 0.2s; letter-spacing: 0.5px; text-transform: uppercase; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); text-shadow: 0 0 8px rgba(255,232,31,0.5); }
+  .tab:hover { color: var(--text); }
+  .light .tab.active { text-shadow: none; }
+
+  /* CONTENT */
+  .content { display: none; max-width: 900px; margin: 0 auto; padding: 16px; position: relative; z-index: 1; }
+  .content.active { display: block; }
+
+  /* SEARCH */
+  .search-bar { width: 100%; background: rgba(255,232,31,0.04); border: 1px solid rgba(255,232,31,0.2); color: var(--text); padding: 10px 14px; border-radius: 10px; font-size: 15px; margin-bottom: 16px; }
+  .search-bar::placeholder { color: var(--muted); }
+  .search-bar:focus { outline: none; border-color: var(--accent2); box-shadow: 0 0 0 2px rgba(79,195,247,0.15); }
+  .light .search-bar { background: var(--bg3); border-color: var(--border); }
+
+  /* DOMAIN CARDS */
+  .domain-card { background: var(--card); border: 1px solid rgba(255,232,31,0.15); border-radius: 12px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 20px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,232,31,0.05); transition: border-color 0.2s; }
+  .domain-card:hover { border-color: rgba(255,232,31,0.3); }
+  .light .domain-card { border-color: var(--border); box-shadow: var(--shadow); }
+  .domain-header { padding: 14px 16px; cursor: pointer; display: flex; align-items: center; gap: 12px; user-select: none; }
+  .domain-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; white-space: nowrap; letter-spacing: 0.5px; }
+  .domain-title { font-weight: 600; font-size: 15px; flex: 1; letter-spacing: 0.3px; }
+  .domain-pct { font-size: 13px; color: var(--accent); font-weight: 700; }
+  .domain-arrow { color: var(--muted); font-size: 12px; transition: transform 0.2s; }
+  .domain-card.open .domain-arrow { transform: rotate(180deg); }
+  .domain-body { display: none; padding: 0 16px 16px; border-top: 1px solid rgba(255,232,31,0.1); }
+  .light .domain-body { border-top-color: var(--border); }
+  .domain-card.open .domain-body { display: block; }
+
+  /* CONTENT SECTIONS */
+  .section-title { font-size: 12px; font-weight: 700; color: var(--accent2); margin: 14px 0 8px; text-transform: uppercase; letter-spacing: 2px; }
+  .topic-list { list-style: none; }
+  .topic-list li { padding: 6px 0; border-bottom: 1px solid rgba(255,232,31,0.08); font-size: 14px; color: var(--text); }
+  .light .topic-list li { border-bottom-color: var(--border); }
+  .topic-list li:last-child { border-bottom: none; }
+  .topic-list li::before { content: "⟶ "; color: var(--accent); }
+
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+  th { background: rgba(255,232,31,0.07); padding: 8px 10px; text-align: left; font-weight: 700; color: var(--accent); border-bottom: 1px solid rgba(255,232,31,0.2); letter-spacing: 0.5px; font-size: 12px; text-transform: uppercase; }
+  td { padding: 7px 10px; border-bottom: 1px solid rgba(255,232,31,0.06); color: var(--text); }
+  tr:hover td { background: rgba(255,232,31,0.03); }
+  .light th { background: var(--bg3); border-bottom-color: var(--border); }
+  .light td { border-bottom-color: var(--border); }
+  .light tr:hover td { background: var(--bg3); }
+
+  .callout { background: rgba(255,232,31,0.04); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 0 8px 8px 0; margin: 10px 0; font-size: 13px; }
+  .callout.green { border-left-color: var(--green); background: rgba(0,214,143,0.05); }
+  .callout.red { border-left-color: var(--red); background: rgba(255,68,68,0.05); }
+  .callout.purple { border-left-color: var(--purple); background: rgba(179,136,255,0.05); }
+  .light .callout { background: var(--bg3); }
+  code { background: rgba(255,159,67,0.12); padding: 2px 6px; border-radius: 4px; font-family: 'SF Mono', monospace; font-size: 12px; color: var(--orange); border: 1px solid rgba(255,159,67,0.2); }
+  .light code { background: var(--bg3); border-color: var(--border); }
+  pre { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,232,31,0.15); padding: 12px; border-radius: 8px; font-size: 12px; overflow-x: auto; color: var(--accent2); font-family: 'SF Mono', monospace; margin: 10px 0; }
+  p { font-size: 14px; color: var(--text); margin: 8px 0; }
+  strong { color: var(--accent); }
+
+  /* FLASHCARDS */
+  .fc-controls { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .fc-filter { background: rgba(255,232,31,0.06); border: 1px solid rgba(255,232,31,0.2); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+  .light .fc-filter { background: var(--bg3); border-color: var(--border); }
+  .fc-filter.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; box-shadow: 0 0 10px rgba(255,232,31,0.3); }
+  .fc-stat { margin-left: auto; font-size: 13px; color: var(--muted); }
+
+  .flashcard-container { perspective: 1000px; height: 280px; margin-bottom: 16px; }
+  .flashcard { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.5s ease; cursor: pointer; }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .fc-front, .fc-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 16px; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; text-align: center; }
+  .fc-front { background: var(--card); border: 1px solid rgba(255,232,31,0.2); box-shadow: 0 0 40px rgba(0,0,0,0.9), 0 0 1px rgba(255,232,31,0.1); }
+  .fc-back { background: linear-gradient(135deg, #05080f, #0c1525); border: 1px solid rgba(79,195,247,0.3); transform: rotateY(180deg); box-shadow: 0 0 40px rgba(0,0,0,0.9); }
+  .light .fc-front { background: var(--card); border-color: var(--border); box-shadow: var(--shadow); }
+  .light .fc-back { background: var(--bg3); border-color: var(--border); }
+  .fc-domain-tag { font-size: 11px; font-weight: 700; padding: 3px 12px; border-radius: 20px; background: rgba(255,232,31,0.1); border: 1px solid rgba(255,232,31,0.25); color: var(--accent); margin-bottom: 16px; letter-spacing: 1px; text-transform: uppercase; }
+  .fc-question { font-size: 15px; font-weight: 600; line-height: 1.6; color: var(--text); }
+  .fc-answer { font-size: 13px; line-height: 1.7; color: var(--text); }
+  .fc-tap-hint { font-size: 11px; color: var(--muted); margin-top: 16px; letter-spacing: 1px; text-transform: uppercase; }
+  .fc-nav { display: flex; gap: 10px; margin-bottom: 16px; }
+  .fc-btn { flex: 1; padding: 12px; border-radius: 10px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px; }
+  .fc-btn.again { background: var(--red); color: white; }
+  .fc-btn.hard { background: var(--orange); color: white; }
+  .fc-btn.good { background: var(--green); color: #000; }
+  .fc-btn.easy { background: var(--accent2); color: #000; }
+  .fc-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .fc-progress-bar { height: 4px; background: rgba(255,232,31,0.1); border-radius: 3px; margin-bottom: 16px; overflow: hidden; }
+  .fc-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 3px; transition: width 0.3s; }
+
+  /* PROGRESS TRACKER */
+  .week-card { background: var(--card); border: 1px solid rgba(255,232,31,0.12); border-radius: 12px; margin-bottom: 12px; overflow: hidden; transition: border-color 0.2s; }
+  .week-card:hover { border-color: rgba(255,232,31,0.25); }
+  .light .week-card { border-color: var(--border); }
+  .week-header { padding: 14px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .week-title { font-weight: 700; font-size: 14px; flex: 1; letter-spacing: 0.3px; }
+  .week-prog { font-size: 13px; color: var(--muted); }
+  .week-bar { height: 3px; background: rgba(255,232,31,0.08); }
+  .week-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); transition: width 0.4s; }
+  .week-body { display: none; padding: 0 16px 16px; }
+  .week-card.open .week-body { display: block; }
+  .day-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,232,31,0.07); }
+  .light .day-item { border-bottom-color: var(--border); }
+  .day-item:last-child { border-bottom: none; }
+  .day-check { width: 20px; height: 20px; border: 2px solid rgba(255,232,31,0.2); border-radius: 5px; cursor: pointer; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .day-check.checked { background: var(--green); border-color: var(--green); box-shadow: 0 0 8px rgba(0,214,143,0.4); }
+  .day-check.checked::after { content: "✓"; color: #000; font-size: 12px; font-weight: 800; }
+  .day-label { font-size: 13px; }
+  .day-label strong { display: block; font-weight: 600; color: var(--text); }
+  .day-label span { color: var(--muted); font-size: 12px; }
+  .overall-progress { background: var(--card); border: 1px solid rgba(255,232,31,0.18); border-radius: 12px; padding: 18px; margin-bottom: 16px; box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+  .light .overall-progress { border-color: var(--border); }
+  .op-title { font-size: 11px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 2px; }
+  .op-pct { font-size: 42px; font-weight: 900; color: var(--accent); text-shadow: 0 0 20px rgba(255,232,31,0.4); }
+  .op-bar { height: 8px; background: rgba(255,232,31,0.08); border-radius: 5px; margin: 10px 0; overflow: hidden; }
+  .op-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent2), var(--accent)); border-radius: 5px; transition: width 0.4s; box-shadow: 0 0 10px rgba(255,232,31,0.3); }
+  .op-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .op-stat { background: rgba(255,232,31,0.04); border: 1px solid rgba(255,232,31,0.1); border-radius: 8px; padding: 10px; text-align: center; }
+  .light .op-stat { background: var(--bg3); border-color: var(--border); }
+  .op-stat-num { font-size: 22px; font-weight: 800; color: var(--accent); }
+  .op-stat-label { font-size: 10px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
+
+  /* TIMER */
+  .timer-card { background: var(--card); border: 1px solid rgba(255,232,31,0.18); border-radius: 16px; padding: 24px; text-align: center; margin-bottom: 16px; box-shadow: 0 0 40px rgba(0,0,0,0.9); }
+  .timer-display { font-size: 72px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); letter-spacing: -2px; font-family: 'SF Mono', monospace; }
+  .timer-display.warning { color: var(--orange); }
+  .timer-display.danger { color: var(--red); }
+  .timer-label { font-size: 13px; color: var(--muted); margin-top: 4px; margin-bottom: 20px; }
+  .timer-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .timer-btn { padding: 10px 20px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg3); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .timer-btn:hover { background: var(--accent); color: #000; border-color: var(--accent); }
+  .timer-btn.primary { background: var(--accent); color: #000; border-color: var(--accent); }
+  .timer-btn.danger { background: var(--red); color: white; border-color: var(--red); }
+  .timer-presets { display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+  .timer-preset { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg3); color: var(--muted); font-size: 12px; cursor: pointer; }
+  .timer-preset:hover { border-color: var(--accent2); color: var(--accent2); }
+  .score-tracker { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .score-title { font-weight: 700; margin-bottom: 12px; font-size: 15px; }
+  .score-input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+  .score-input { flex: 1; background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 14px; }
+  .score-input:focus { outline: none; border-color: var(--accent2); }
+  .add-score-btn { background: var(--accent2); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
+  .score-entry { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .score-bar-wrap { flex: 1; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+  .score-bar { height: 100%; border-radius: 4px; }
+  .score-num { font-weight: 700; font-size: 15px; width: 48px; text-align: right; }
+  .score-del { color: var(--muted); cursor: pointer; font-size: 16px; }
+
+  /* CHEAT SHEET */
+  .cheat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 600px) { .cheat-grid { grid-template-columns: 1fr; } }
+  .cheat-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .cheat-card h4 { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 8px; }
+  .cheat-item { font-size: 12px; padding: 3px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; gap: 6px; }
+  .cheat-item:last-child { border-bottom: none; }
+  .cheat-key { color: var(--muted); font-size: 11px; }
+  .cheat-val { color: var(--text); font-weight: 500; text-align: right; }
+
+  /* MISC */
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 4px; margin-right: 4px; }
+  .badge-d1 { background: #1e3a5f; color: #60a5fa; }
+  .badge-d2 { background: #3b1f1f; color: #f87171; }
+  .badge-d3 { background: #1a2e1a; color: #4ade80; }
+  .badge-d4 { background: #2d1f3d; color: #c084fc; }
+  .badge-d5 { background: #2e2000; color: #fbbf24; }
+  .badge-d6 { background: #1f2d2e; color: #2dd4bf; }
+  .empty-state { text-align: center; padding: 40px; color: var(--muted); font-size: 14px; }
+  .hidden { display: none !important; }
+
+  @media (max-width: 480px) {
+    .fc-question { font-size: 14px; }
+    .timer-display { font-size: 56px; }
+    .cheat-grid { grid-template-columns: 1fr; }
+    .op-stats { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* ===== GAME STYLES ===== */
+  .game-lobby { text-align: center; padding: 8px 0 16px; }
+  .game-lobby h2 { font-size: 22px; font-weight: 800; color: var(--accent); margin-bottom: 4px; letter-spacing: 1px; }
+  .game-lobby p { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .game-modes { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  @media(max-width:560px){ .game-modes { grid-template-columns: 1fr; } }
+  .mode-card { background: var(--card); border: 2px solid var(--border); border-radius: 14px; padding: 18px 12px; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .mode-card:hover, .mode-card.selected { border-color: var(--accent); background: var(--bg3); transform: translateY(-2px); }
+  .mode-card.selected { box-shadow: 0 0 0 1px var(--accent); }
+  .mode-icon { font-size: 32px; margin-bottom: 8px; }
+  .mode-name { font-weight: 700; font-size: 14px; color: var(--text); margin-bottom: 4px; }
+  .mode-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .game-start-btn { background: var(--accent); color: #000; border: none; padding: 14px 40px; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; letter-spacing: 1px; transition: all 0.2s; }
+  .game-start-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+  .game-hiscores { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 16px; }
+  .game-hi { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 12px; text-align: center; }
+  .game-hi-label { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .game-hi-val { color: var(--accent); font-weight: 800; font-size: 18px; }
+
+  /* active game */
+  .game-arena { display: none; }
+  .game-arena.active { display: block; }
+  .game-hud { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; }
+  .hud-lives { font-size: 20px; letter-spacing: 2px; }
+  .hud-score { font-size: 20px; font-weight: 800; color: var(--accent); flex: 1; text-align: center; }
+  .hud-streak { font-size: 13px; font-weight: 700; color: var(--orange); min-width: 60px; text-align: right; }
+  .game-timer-bar { height: 6px; background: var(--bg3); border-radius: 3px; margin-bottom: 14px; overflow: hidden; }
+  .game-timer-fill { height: 100%; border-radius: 3px; transition: width 0.1s linear, background 0.5s; background: var(--green); }
+  .game-q-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 14px; min-height: 120px; display: flex; flex-direction: column; justify-content: center; }
+  .game-q-domain { font-size: 11px; font-weight: 700; color: var(--accent2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .game-q-text { font-size: 15px; font-weight: 600; line-height: 1.5; color: var(--text); }
+  .game-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  @media(max-width:480px){ .game-options { grid-template-columns: 1fr; } }
+  .game-opt { background: var(--bg3); border: 2px solid var(--border); border-radius: 10px; padding: 12px 14px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text); transition: all 0.15s; text-align: left; line-height: 1.4; }
+  .game-opt:hover:not(:disabled) { border-color: var(--accent2); background: var(--card); }
+  .game-opt.correct { border-color: var(--green) !important; background: rgba(16,185,129,0.15) !important; color: var(--green); }
+  .game-opt.wrong { border-color: var(--red) !important; background: rgba(239,68,68,0.12) !important; color: var(--red); }
+  .game-opt.reveal { border-color: var(--green) !important; background: rgba(16,185,129,0.08) !important; }
+  .game-opt:disabled { cursor: default; }
+  .game-feedback { text-align: center; padding: 10px; border-radius: 10px; font-size: 13px; margin-bottom: 10px; font-weight: 600; display: none; }
+  .game-feedback.show { display: block; }
+  .game-feedback.good { background: rgba(16,185,129,0.15); color: var(--green); }
+  .game-feedback.bad { background: rgba(239,68,68,0.12); color: var(--red); }
+  .game-next-btn { width: 100%; background: var(--accent2); color: white; border: none; padding: 12px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; display: none; }
+  .game-next-btn.show { display: block; }
+
+  /* Policy Judge */
+  .judge-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 14px; }
+  .judge-scenario { font-size: 14px; line-height: 1.6; color: var(--text); margin-bottom: 16px; }
+  .judge-scenario code { background: var(--bg3); padding: 2px 6px; border-radius: 4px; font-size: 12px; color: var(--orange); }
+  .judge-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .judge-btn { padding: 16px; border-radius: 12px; border: 2px solid; font-size: 16px; font-weight: 800; cursor: pointer; transition: all 0.2s; letter-spacing: 1px; }
+  .judge-btn.allow { background: rgba(16,185,129,0.1); border-color: var(--green); color: var(--green); }
+  .judge-btn.deny { background: rgba(239,68,68,0.1); border-color: var(--red); color: var(--red); }
+  .judge-btn:hover:not(:disabled) { transform: scale(1.03); }
+  .judge-btn.correct { opacity: 1; transform: scale(1.05); box-shadow: 0 0 20px rgba(16,185,129,0.4); }
+  .judge-btn.wrong-pick { opacity: 0.4; }
+
+  /* Showdown */
+  .showdown-q { font-size: 15px; font-weight: 600; line-height: 1.55; color: var(--text); background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+  .showdown-tag { font-size: 11px; font-weight: 700; color: var(--purple); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px; }
+  .showdown-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media(max-width:480px){ .showdown-opts { grid-template-columns: 1fr; } }
+  .showdown-opt { background: var(--bg3); border: 2px solid var(--border); border-radius: 10px; padding: 13px 14px; cursor: pointer; font-size: 13px; font-weight: 600; text-align: center; color: var(--text); transition: all 0.15s; }
+  .showdown-opt:hover:not(:disabled) { border-color: var(--purple); }
+  .showdown-opt.correct { border-color: var(--green) !important; color: var(--green); background: rgba(16,185,129,0.12) !important; }
+  .showdown-opt.wrong { border-color: var(--red) !important; color: var(--red); background: rgba(239,68,68,0.1) !important; }
+  .showdown-opt.reveal { border-color: var(--green) !important; background: rgba(16,185,129,0.06) !important; }
+
+  /* Results */
+  .game-results { display: none; text-align: center; padding: 20px 0; }
+  .game-results.active { display: block; }
+  .result-score { font-size: 72px; font-weight: 900; color: var(--accent); line-height: 1; }
+  .result-label { font-size: 14px; color: var(--muted); margin: 6px 0 20px; }
+  .result-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .result-stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .result-stat-num { font-size: 24px; font-weight: 800; color: var(--text); }
+  .result-stat-label { font-size: 11px; color: var(--muted); }
+  .result-new-hi { color: var(--accent); font-size: 13px; font-weight: 700; margin-bottom: 16px; }
+  .result-msg { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .result-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+  .result-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .result-btn { padding: 12px 24px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg3); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .result-btn.primary { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  /* ===== FORCE TRIAL STYLES ===== */
+  .force-hud-label { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #4fc3f7; text-align: center; margin-bottom: 2px; }
+  .force-timer-bar { height: 8px; background: #0a0a1a; border-radius: 4px; margin-bottom: 14px; overflow: hidden; border: 1px solid #1a2a4a; }
+  .force-timer-fill { height: 100%; border-radius: 4px; transition: width 0.1s linear; background: linear-gradient(90deg, #4fc3f7, #8b5cf6); }
+  .force-power-row { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+  .force-power-btn { background: linear-gradient(135deg, #1a1040, #2d1060); border: 1px solid #8b5cf6; color: #c084fc; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; letter-spacing: 0.5px; transition: all 0.2s; }
+  .force-power-btn:hover:not(:disabled) { background: linear-gradient(135deg, #2d1060, #4a1090); box-shadow: 0 0 12px rgba(139,92,246,0.5); }
+  .force-power-btn:disabled { opacity: 0.35; cursor: default; }
+  .force-q-card { background: linear-gradient(135deg, #05080f, #0a1020); border: 1px solid #1e3a5f; border-radius: 14px; padding: 20px; margin-bottom: 12px; }
+  .force-q-lore { font-size: 11px; font-weight: 700; color: #4fc3f7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+  .force-q-text { font-size: 14px; font-weight: 500; line-height: 1.65; color: #dce8ff; }
+  .force-opt { background: rgba(10,16,35,0.8); border: 2px solid #1e3a5f; border-radius: 10px; padding: 12px 14px; cursor: pointer; font-size: 13px; font-weight: 500; color: #dce8ff; transition: all 0.15s; text-align: left; line-height: 1.4; }
+  .force-opt:hover:not(:disabled) { border-color: #4fc3f7; background: rgba(79,195,247,0.08); }
+  .force-opt.correct { border-color: #10b981 !important; background: rgba(16,185,129,0.15) !important; color: #10b981; }
+  .force-opt.wrong { border-color: #ef4444 !important; background: rgba(239,68,68,0.12) !important; color: #ef4444; }
+  .force-opt.reveal { border-color: #10b981 !important; background: rgba(16,185,129,0.06) !important; }
+  .force-opt:disabled { cursor: default; }
+  .crawl-wrap { position:fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index:9999; display:flex; align-items:center; justify-content:center; flex-direction:column; overflow:hidden; }
+  .crawl-text { color: #FFE81F; font-size: clamp(12px,2.5vw,20px); font-weight:700; letter-spacing:2px; text-align:center; line-height:1.8; max-width:600px; padding:0 24px; animation: crawlFade 0.8s ease-in; }
+  .crawl-title { font-size: clamp(20px,5vw,40px); font-weight:900; letter-spacing:4px; color:#FFE81F; margin-bottom:24px; }
+  .crawl-sub { font-size: clamp(10px,1.8vw,14px); color: #aaa; margin-top:20px; }
+  @keyframes crawlFade { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+  .saber-idle { display: inline-block; width: 4px; height: 24px; border-radius: 2px; vertical-align: middle; margin: 0 2px; }
+  .saber-blue { background: linear-gradient(to top, #1565c0, #4fc3f7, #e0f7fa); box-shadow: 0 0 8px #4fc3f7; }
+  .saber-red  { background: linear-gradient(to top, #b71c1c, #ef5350, #ffcdd2); box-shadow: 0 0 8px #ef5350; }
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+
+<div class="header">
+  <div class="header-logo">
+    <div class="header-title">AWS SCS-C03</div>
+    <div class="header-sub">Security Specialty · SCS-C03 · Jedi Archives</div>
+  </div>
+  <button class="btn-icon" onclick="toggleTheme()" id="themeBtn">☀️</button>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="showTab('guide')">📚 Guide</div>
+  <div class="tab" onclick="showTab('flashcards')">🃏 Flashcards</div>
+  <div class="tab" onclick="showTab('progress')">✅ Progress</div>
+  <div class="tab" onclick="showTab('timer')">⏱ Timer</div>
+  <div class="tab" onclick="showTab('cheatsheet')">⚡ Cheat Sheet</div>
+  <div class="tab" onclick="showTab('game')">🎮 Game</div>
+</div>
+
+<!-- ============================================================ GUIDE TAB -->
+<div class="content active" id="tab-guide">
+  <input class="search-bar" type="search" placeholder="🔍 Search topics, services, concepts..." oninput="searchGuide(this.value)" id="guideSearch">
+
+  <div id="guideContent">
+
+  <!-- EXAM META -->
+  <div class="domain-card open" id="dc-meta">
+    <div class="domain-header" onclick="toggleDomain('dc-meta')">
+      <span class="domain-badge" style="background:#1e3050;color:#60a5fa;">ℹ️ EXAM INFO</span>
+      <span class="domain-title">Exam Overview & Strategy</span>
+      <span class="domain-arrow">▼</span>
+    </div>
+    <div class="domain-body">
+      <table>
+        <tr><th>Detail</th><th>Info</th></tr>
+        <tr><td>Exam Code</td><td><strong>SCS-C03</strong> (current — C02 retired Dec 1 2025)</td></tr>
+        <tr><td>Questions</td><td>65 total (50 scored + 15 unscored)</td></tr>
+        <tr><td>Duration</td><td>170 minutes</td></tr>
+        <tr><td>Passing Score</td><td>750 / 1000 (scaled)</td></tr>
+        <tr><td>Question Types</td><td>Multiple choice, multiple select, scenario-based</td></tr>
+        <tr><td>Experience</td><td>3–5 years designing AWS security solutions</td></tr>
+      </table>
+      <div class="callout">
+        <strong>Priority order:</strong> IAM (20%) + Infrastructure (18%) + Data Protection (18%) = 56% of the exam. Master these three first.
+      </div>
+      <table>
+        <tr><th>Domain</th><th>Weight</th><th>~Questions</th></tr>
+        <tr><td>1. Detection</td><td>16%</td><td>~8</td></tr>
+        <tr><td>2. Incident Response</td><td>14%</td><td>~7</td></tr>
+        <tr><td>3. Infrastructure Security</td><td>18%</td><td>~9</td></tr>
+        <tr><td>4. Identity & Access Management</td><td><strong style="color:var(--accent)">20%</strong></td><td><strong style="color:var(--accent)">~10</strong></td></tr>
+        <tr><td>5. Data Protection</td><td>18%</td><td>~9</td></tr>
+        <tr><td>6. Security Foundations & Governance</td><td>14%</td><td>~7</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- DOMAIN 1 -->
+  <div class="domain-card" id="dc-d1">
+    <div class="domain-header" onclick="toggleDomain('dc-d1')">
+      <span class="domain-badge badge-d1">D1</span>
+      <span class="domain-title">Detection</span>
+      <span class="domain-pct">16%</span>
+      <span class="domain-arrow">▼</span>
+    </div>
+    <div class="domain-body">
+      <p class="section-title">Core Services</p>
+      <p>GuardDuty · CloudTrail · CloudWatch · Security Hub · Detective · VPC Flow Logs</p>
+
+      <p class="section-title">CloudTrail</p>
+      <ul class="topic-list">
+        <li>Management events: ON by default. Data events (S3 object-level, Lambda invoke): <strong>opt-in only</strong></li>
+        <li>Enable multi-region trail + log file validation + deliver to S3 + CloudWatch Logs</li>
+        <li>CloudTrail Insights: detects unusual API call rates (anomaly detection)</li>
+        <li>CloudTrail Lake: SQL-queryable, long-term investigation store</li>
+        <li>Protect logs: S3 MFA delete + restrictive bucket policy + log file validation</li>
+      </ul>
+
+      <p class="section-title">GuardDuty</p>
+      <ul class="topic-list">
+        <li>Analyzes CloudTrail, VPC Flow Logs, DNS logs <strong>automatically</strong> — no agents</li>
+        <li>EKS audit log protection: must be explicitly enabled</li>
+        <li>Member accounts: enable via Organizations for all accounts/regions at once</li>
+        <li>Finding categories: Recon, Backdoor, CryptoCurrency, UnauthorizedAccess, Trojan</li>
+        <li>Suppression rules: filter noise from known-safe activity</li>
+      </ul>
+
+      <p class="section-title">Security Hub</p>
+      <ul class="topic-list">
+        <li>Aggregates findings in <strong>ASFF</strong> (Amazon Security Finding Format)</li>
+        <li>Standards: CIS AWS Foundations, AWS FSBP, PCI-DSS, NIST</li>
+        <li>Delegated admin account receives findings from all member accounts</li>
+        <li>Custom insights: filter/group findings by criteria</li>
+      </ul>
+
+      <p class="section-title">Amazon Detective</p>
+      <ul class="topic-list">
+        <li>Used for <strong>post-incident investigation</strong>, NOT alerting</li>
+        <li>Builds behavior graph from GuardDuty, CloudTrail, VPC Flow Logs</li>
+        <li>Use when: "investigate WHY a GuardDuty finding fired"</li>
+      </ul>
+
+      <p class="section-title">CloudWatch Alarms</p>
+      <ul class="topic-list">
+        <li>Metric filter on CloudTrail log group → alarm → SNS</li>
+        <li>Key alerts: root login, console failures, SG changes, CloudTrail stopped</li>
+      </ul>
+
+      <div class="callout red">
+        <strong>Exam traps:</strong> CloudTrail does NOT log data events by default. GuardDuty does NOT analyze EKS by default. VPC Flow Logs capture metadata only — no packet content.
+      </div>
+
+      <p class="section-title">Common Question Patterns</p>
+      <ul class="topic-list">
+        <li>"Detect unauthorized API calls" → CloudTrail + CloudWatch metric filter + alarm</li>
+        <li>"Centralize findings across 50 accounts" → Security Hub + delegated admin</li>
+        <li>"Investigate network flows after GuardDuty alert" → Amazon Detective</li>
+        <li>"Prevent CloudTrail log deletion" → S3 MFA delete + bucket policy + log file validation</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- DOMAIN 2 -->
+  <div class="domain-card" id="dc-d2">
+    <div class="domain-header" onclick="toggleDomain('dc-d2')">
+      <span class="domain-badge badge-d2">D2</span>
+      <span class="domain-title">Incident Response</span>
+      <span class="domain-pct">14%</span>
+      <span class="domain-arrow">▼</span>
+    </div>
+    <div class="domain-body">
+      <p class="section-title">Core Services</p>
+      <p>Systems Manager · EventBridge · Lambda · Step Functions · EC2</p>
+
+      <p class="section-title">Compromised EC2 — Memorize This Flow</p>
+      <div class="callout green">
+        1. Capture instance metadata + memory snapshot<br>
+        2. Isolate: swap security group → quarantine SG (no inbound/outbound)<br>
+        3. EBS snapshot(s) for forensic copy<br>
+        4. Create forensic AMI if needed<br>
+        5. Mount EBS snapshot read-only in isolated forensic instance<br>
+        ❌ Never "clean" and return to production
+      </div>
+
+      <p class="section-title">Compromised IAM Credentials — Memorize This Flow</p>
+      <div class="callout red">
+        1. Disable the access key <strong>immediately</strong><br>
+        2. Attach explicit deny policy with <code>aws:TokenIssueTime</code> condition (revokes active sessions)<br>
+        3. Rotate all other credentials<br>
+        4. Review CloudTrail for actions taken with that key<br>
+        5. Check for new IAM users, roles, access keys created
+      </div>
+
+      <p class="section-title">Automated IR Pattern</p>
+      <ul class="topic-list">
+        <li>GuardDuty finding → EventBridge rule → Lambda → (modify SG, disable key, notify SNS)</li>
+        <li>Complex workflows → Step Functions (retry logic, parallel actions)</li>
+        <li>Standardized runbooks → SSM Automation documents</li>
+        <li>Ticket tracking → OpsCenter</li>
+      </ul>
+
+      <p class="section-title">Forensics Best Practices</p>
+      <ul class="topic-list">
+        <li>Cross-account snapshot sharing → forensic account</li>
+        <li>Preserve chain of custody: hash EBS snapshots (SHA-256)</li>
+        <li>Mount as read-only: never write to forensic volume</li>
+        <li>CloudTrail Lake for SQL-based historical investigation</li>
+      </ul>
+
+      <div class="callout">
+        <strong>Exam traps:</strong> "First step when key is exposed in GitHub" → disable the key (NOT rotate — rotation creates a new key but the old one still works until disabled)
+      </div>
+    </div>
+  </div>
+
+  <!-- DOMAIN 3 -->
+  <div class="domain-card" id="dc-d3">
+    <div class="domain-header" onclick="toggleDomain('dc-d3')">
+      <span class="domain-badge badge-d3">D3</span>
+      <span class="domain-title">Infrastructure Security</span>
+      <span class="domain-pct">18%</span>
+      <span class="domain-arrow">▼</span>
+    </div>
+    <div class="domain-body">
+      <p class="section-title">Security Groups vs. NACLs</p>
+      <table>
+        <tr><th>Feature</th><th>Security Groups</th><th>NACLs</th></tr>
+        <tr><td>Level</td><td>ENI (instance)</td><td>Subnet</td></tr>
+        <tr><td>State</td><td><strong>Stateful</strong></td><td><strong>Stateless</strong></td></tr>
+        <tr><td>Rules</td><td>Allow only</td><td>Allow AND Deny</td></tr>
+        <tr><td>Evaluation</td><td>All rules evaluated</td><td>Lowest number first</td></tr>
+        <tr><td>Default</td><td>Deny all inbound</td><td>Allow all</td></tr>
+      </table>
+
+      <p class="section-title">VPC Endpoints</p>
+      <table>
+        <tr><th>Type</th><th>Services</th><th>Cost</th><th>Mechanism</th></tr>
+        <tr><td>Gateway</td><td>S3 + DynamoDB only</td><td>Free</td><td>Route table entry</td></tr>
+        <tr><td>Interface (PrivateLink)</td><td>All other AWS services</td><td>$/hr + data</td><td>ENI in subnet</td></tr>
+      </table>
+      <div class="callout">
+        Force private S3 access: endpoint policy + bucket policy with <code>aws:SourceVpce</code> condition
+      </div>
+
+      <p class="section-title">WAF Attachment Points</p>
+      <ul class="topic-list">
+        <li>Application Load Balancer (ALB)</li>
+        <li>CloudFront distribution</li>
+        <li>API Gateway (REST + HTTP)</li>
+        <li>AppSync GraphQL API</li>
+        <li>Cognito User Pool</li>
+      </ul>
+
+      <p class="section-title">Shield Standard vs. Advanced</p>
+      <table>
+        <tr><th>Feature</th><th>Standard</th><th>Advanced</th></tr>
+        <tr><td>Cost</td><td>Free</td><td>$3,000/month</td></tr>
+        <tr><td>Protection</td><td>L3/L4 auto</td><td>L3/L4/L7 + SRT</td></tr>
+        <tr><td>DDoS cost protection</td><td>No</td><td>Yes</td></tr>
+        <tr><td>WAF included</td><td>No</td><td>Yes (for L7)</td></tr>
+      </table>
+
+      <p class="section-title">Session Manager (No SSH!)</p>
+      <div class="callout green">
+        No open ports. No key pairs. IAM-controlled. Full audit trail to S3/CloudWatch. Works through NAT/private subnets. Always choose over bastion host.
+      </div>
+
+      <p class="section-title">IMDSv2 vs. IMDSv1</p>
+      <ul class="topic-list">
+        <li>IMDSv2 requires PUT request for session token before GET — mitigates SSRF attacks</li>
+        <li>Enforce via instance metadata options: <code>HttpTokens=required</code></li>
+        <li>Exam: "prevent SSRF from accessing instance metadata" → enforce IMDSv2</li>
+      </ul>
+
+      <p class="section-title">Common Question Patterns</p>
+      <ul class="topic-list">
+        <li>"Block SQL injection, minimal management" → WAF + AWS managed SQLi rule group</li>
+        <li>"Private S3 access, no internet" → Gateway VPC endpoint + bucket policy with SourceVpce</li>
+        <li>"SSH with full audit, no open ports" → Systems Manager Session Manager</li>
+        <li>"Centrally manage WAF rules across org" → AWS Firewall Manager</li>
+        <li>"Deep packet inspection in VPC" → AWS Network Firewall (Suricata rules)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- DOMAIN 4 -->
+  <div class="domain-card" id="dc-d4">
+    <div class="domain-header" onclick="toggleDomain('dc-d4')">
+      <span class="domain-badge badge-d4">D4</span>
+      <span class="domain-title">Identity & Access Management</span>
+      <span class="domain-pct" style="color:var(--accent)">20% ⭐</span>
+      <span class="domain-arrow">▼</span>
+    </div>
+    <div class="domain-body">
+      <p class="section-title">Policy Evaluation Logic — MEMORIZE THIS</p>
+      <div class="callout red">
+        <strong>1.</strong> Explicit DENY anywhere → DENY (always wins)<br>
+        <strong>2.</strong> SCP doesn't allow → DENY<br>
+        <strong>3.</strong> Resource-based policy grants (same account) → ALLOW<br>
+        <strong>4.</strong> Identity-based policy grants → ALLOW<br>
+        <strong>5.</strong> Permission Boundary denies → DENY<br>
+        <strong>6.</strong> Session Policy denies → DENY<br>
+        <strong>7.</strong> Default → DENY
+      </div>
+      <div class="callout">
+        <strong>Cross-account:</strong> BOTH must allow: role trust policy in target account AND IAM policy in source account (or resource-based policy alone for S3/KMS)
+      </div>
+
+      <p class="section-title">Policy Types Reference</p>
+      <table>
+        <tr><th>Type</th><th>Attached To</th><th>Can Grant</th><th>Can Deny</th></tr>
+        <tr><td>Identity policy</td><td>User/Group/Role</td><td>Yes</td><td>Yes</td></tr>
+        <tr><td>Resource policy</td><td>S3, KMS, SQS…</td><td>Yes</td><td>Yes</td></tr>
+        <tr><td>SCP</td><td>OU/Account</td><td><strong style="color:var(--red)">No</strong></td><td>Yes</td></tr>
+        <tr><td>Permission Boundary</td><td>User/Role</td><td><strong style="color:var(--red)">No</strong></td><td>Yes</td></tr>
+        <tr><td>Session Policy</td><td>STS Session</td><td><strong style="color:var(--red)">No</strong></td><td>Yes</td></tr>
+      </table>
+
+      <p class="section-title">ABAC vs. RBAC</p>
+      <ul class="topic-list">
+        <li><strong>RBAC:</strong> roles map to job functions — scales poorly with many teams</li>
+        <li><strong>ABAC:</strong> tags as attributes — <code>aws:ResourceTag/Project == aws:PrincipalTag/Project</code></li>
+        <li>ABAC scales better for large orgs; requires consistent tagging discipline</li>
+      </ul>
+
+      <p class="section-title">Cognito</p>
+      <table>
+        <tr><th>Pool Type</th><th>Purpose</th><th>Returns</th></tr>
+        <tr><td>User Pool</td><td>Authentication (sign in)</td><td>JWT tokens</td></tr>
+        <tr><td>Identity Pool</td><td>Authorization</td><td>AWS credentials (via STS)</td></tr>
+      </table>
+      <p>Flow: User → IdP → Cognito User Pool (JWT) → Identity Pool → STS → AWS credentials</p>
+
+      <p class="section-title">IAM Access Analyzer</p>
+      <ul class="topic-list">
+        <li>Finds resources shared <strong>outside zone of trust</strong> (account or org)</li>
+        <li>Analyzes: S3, IAM roles, KMS keys, Lambda, SQS, Secrets Manager</li>
+        <li>Policy validation: checks policies for errors before deploy</li>
+        <li>Unused access: identifies over-privileged roles (rightsizing)</li>
+        <li>No finding = resource IS private (not a problem)</li>
+      </ul>
+
+      <p class="section-title">IAM Identity Center (SSO)</p>
+      <ul class="topic-list">
+        <li>Workforce access to multiple AWS accounts from one place</li>
+        <li>Connects to: Active Directory, Okta, Azure AD via SAML/OIDC</li>
+        <li>Permission sets = IAM policies applied to account assignments</li>
+        <li>SCIM: automatic user provisioning from IdP</li>
+      </ul>
+
+      <p class="section-title">Common Question Patterns</p>
+      <ul class="topic-list">
+        <li>"Users can only access resources with their team's tag" → ABAC with tag conditions</li>
+        <li>"SCP allows Admin but IAM user can't access" → check permission boundary or session policy</li>
+        <li>"Never disable CloudTrail in any member account" → SCP Deny cloudtrail:StopLogging at OU root</li>
+        <li>"Mobile app users access DynamoDB with their own permissions" → Cognito Identity Pool → IAM roles</li>
+        <li>"Permission boundary on role with AdministratorAccess" → boundary is the effective limit</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- DOMAIN 5 -->
+  <div class="domain-card" id="dc-d5">
+    <div class="domain-header" onclick="toggleDomain('dc-d5')">
+      <span class="domain-badge badge-d5">D5</span>
+      <span class="domain-title">Data Protection</span>
+      <span class="domain-pct">18%</span>
+      <span class="domain-arrow">▼</span>
+    </div>
+    <div class="domain-body">
+      <p class="section-title">Envelope Encryption — MEMORIZE THIS</p>
+      <div class="callout green">
+        1. AWS generates data key (plaintext + encrypted copy)<br>
+        2. App uses plaintext data key to encrypt data locally<br>
+        3. App stores encrypted data key alongside ciphertext<br>
+        4. Delete plaintext data key from memory<br>
+        5. To decrypt: call KMS to decrypt encrypted data key → decrypt data
+      </div>
+
+      <p class="section-title">KMS Key Types</p>
+      <table>
+        <tr><th>Type</th><th>Cost</th><th>Rotation</th><th>Control</th></tr>
+        <tr><td>AWS-managed</td><td>Free</td><td>Auto (1yr)</td><td>None</td></tr>
+        <tr><td>Customer-managed CMK</td><td>$1/month</td><td>Manual or auto</td><td>Full</td></tr>
+        <tr><td>AWS-owned</td><td>Free</td><td>AWS manages</td><td>Not visible</td></tr>
+      </table>
+      <ul class="topic-list">
+        <li>Key policy MUST include root account to prevent lockout</li>
+        <li>Cross-account: add external principal to key policy + IAM policy in target account (both)</li>
+        <li><code>kms:ViaService</code>: restrict key use to specific AWS services only</li>
+        <li>KMS deletion: 7–30 day waiting period — cancellable</li>
+      </ul>
+
+      <p class="section-title">KMS vs. CloudHSM</p>
+      <table>
+        <tr><th>Feature</th><th>KMS</th><th>CloudHSM</th></tr>
+        <tr><td>FIPS level</td><td>140-2 Level 2</td><td><strong>140-2 Level 3</strong></td></tr>
+        <tr><td>Tenancy</td><td>Multi-tenant</td><td>Single-tenant dedicated</td></tr>
+        <tr><td>Management</td><td>AWS</td><td>You</td></tr>
+        <tr><td>Use case</td><td>Most workloads</td><td>Strict compliance, custom crypto</td></tr>
+      </table>
+
+      <p class="section-title">S3 Encryption Options</p>
+      <table>
+        <tr><th>Type</th><th>Key Managed By</th><th>CloudTrail</th><th>Extra Cost</th></tr>
+        <tr><td>SSE-S3</td><td>AWS (AES-256)</td><td>No</td><td>No</td></tr>
+        <tr><td>SSE-KMS</td><td>KMS CMK</td><td>Yes</td><td>KMS API calls</td></tr>
+        <tr><td>SSE-C</td><td>Customer (per request)</td><td>No</td><td>No</td></tr>
+        <tr><td>CSE</td><td>Customer (client-side)</td><td>No</td><td>No</td></tr>
+      </table>
+      <div class="callout">
+        Reject unencrypted S3 uploads: bucket policy Deny if <code>s3:x-amz-server-side-encryption</code> header is absent<br>
+        Reduce KMS costs: enable <strong>S3 Bucket Keys</strong>
+      </div>
+
+      <p class="section-title">Secrets Manager vs. Parameter Store</p>
+      <table>
+        <tr><th>Feature</th><th>Secrets Manager</th><th>Parameter Store</th></tr>
+        <tr><td>Cost</td><td>~$0.40/secret/mo</td><td>Free (standard)</td></tr>
+        <tr><td>Auto-rotation</td><td>Yes, native</td><td>No (custom only)</td></tr>
+        <tr><td>Use case</td><td>DB passwords, API keys</td><td>Config + basic secrets</td></tr>
+      </table>
+
+      <p class="section-title">ACM Certificates</p>
+      <ul class="topic-list">
+        <li>Public certs: free, auto-renew, <strong>cannot be exported</strong></li>
+        <li>Deploy to: CloudFront, ALB, API Gateway, Elastic Beanstalk only</li>
+        <li>NOT deployable directly to EC2 — use ACM Private CA + export, or self-managed cert</li>
+        <li>Private CA: for internal PKI, mTLS, custom certificate issuance</li>
+      </ul>
+
+      <p class="section-title">Common Question Patterns</p>
+      <ul class="topic-list">
+        <li>"Lambda decrypts 10k/sec, KMS costs high" → envelope encryption + cache data key</li>
+        <li>"RDS password rotation without app downtime" → Secrets Manager auto-rotation</li>
+        <li>"FIPS 140-2 Level 3 required" → CloudHSM</li>
+        <li>"Find PII in S3 buckets across accounts" → Amazon Macie</li>
+        <li>"ACM cert on EC2" → Not supported — use Private CA or import own cert</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- DOMAIN 6 -->
+  <div class="domain-card" id="dc-d6">
+    <div class="domain-header" onclick="toggleDomain('dc-d6')">
+      <span class="domain-badge badge-d6">D6</span>
+      <span class="domain-title">Security Foundations & Governance</span>
+      <span class="domain-pct">14%</span>
+      <span class="domain-arrow">▼</span>
+    </div>
+    <div class="domain-body">
+      <p class="section-title">SCP Rules — MEMORIZE</p>
+      <div class="callout red">
+        • SCPs <strong>RESTRICT</strong> — they NEVER grant permissions<br>
+        • SCPs do NOT apply to the management account<br>
+        • SCPs do NOT affect service-linked roles<br>
+        • Effective permission = intersection of all SCPs in parent OUs<br>
+        • <code>FullAWSAccess</code> must be explicitly attached — not default
+      </div>
+
+      <p class="section-title">Control Tower Guardrail Types</p>
+      <table>
+        <tr><th>Type</th><th>Implementation</th><th>Effect</th></tr>
+        <tr><td>Preventive</td><td>SCP</td><td>Blocks the action</td></tr>
+        <tr><td>Detective</td><td>Config rule</td><td>Alerts on violation</td></tr>
+        <tr><td>Proactive</td><td>CloudFormation hooks</td><td>Checks before creation</td></tr>
+      </table>
+
+      <p class="section-title">Multi-Account Architecture</p>
+      <ul class="topic-list">
+        <li>Management account: Org root only — no workloads ever</li>
+        <li>Security Tooling account: GuardDuty admin, Security Hub admin, delegated services</li>
+        <li>Log Archive account: immutable CloudTrail + Config logs (restrict delete)</li>
+        <li>Network account: Transit Gateway, shared VPC services</li>
+      </ul>
+
+      <p class="section-title">Compliance Services</p>
+      <table>
+        <tr><th>Service</th><th>Use Case</th></tr>
+        <tr><td>AWS Config</td><td>Continuous config drift detection, remediation</td></tr>
+        <tr><td>Audit Manager</td><td>Auto-collect evidence for compliance frameworks (HIPAA, SOC2, PCI)</td></tr>
+        <tr><td>AWS Artifact</td><td>Download AWS compliance reports (SOC, ISO, PCI) for auditors</td></tr>
+        <tr><td>Security Hub</td><td>Aggregate findings + run CIS/PCI-DSS/NIST compliance checks</td></tr>
+        <tr><td>Macie</td><td>S3 sensitive data classification (PII detection) — NOT threat detection</td></tr>
+      </table>
+
+      <p class="section-title">NEW: GenAI Security (SCS-C03 Only)</p>
+      <ul class="topic-list">
+        <li>Bedrock guardrails: content filters, denied topics, PII redaction, word filters</li>
+        <li>IAM conditions to restrict which foundation models users can invoke</li>
+        <li>Bedrock does NOT use customer data to train base models by default</li>
+        <li>Model invocation logging: log to S3/CloudWatch for audit trail</li>
+        <li>SageMaker: VPC isolation, encryption at rest/transit, IAM roles for endpoints</li>
+        <li>Prompt injection: validate + sanitize inputs before sending to foundation models</li>
+      </ul>
+
+      <p class="section-title">Common Question Patterns</p>
+      <ul class="topic-list">
+        <li>"Prevent disabling GuardDuty in all member accounts" → SCP Deny guardduty:DeleteDetector</li>
+        <li>"Config data across 100 accounts in one place" → Config aggregator + delegated admin</li>
+        <li>"Auditor needs SOC 2 report" → AWS Artifact</li>
+        <li>"Auto PCI-DSS evidence collection" → AWS Audit Manager with PCI-DSS framework</li>
+        <li>"New account auto-gets security baseline" → Control Tower Account Factory + mandatory guardrails</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- TRICKS -->
+  <div class="domain-card" id="dc-tricks">
+    <div class="domain-header" onclick="toggleDomain('dc-tricks')">
+      <span class="domain-badge" style="background:#2e1f00;color:#fbbf24;">⚠️ TRAPS</span>
+      <span class="domain-title">Common Trick Questions</span>
+      <span class="domain-arrow">▼</span>
+    </div>
+    <div class="domain-body">
+      <table>
+        <tr><th>The Trap</th><th>The Real Answer</th></tr>
+        <tr><td>MFA on root account</td><td>Hardware MFA — virtual MFA not enough for exam scenarios</td></tr>
+        <tr><td>SCP allows Admin but user blocked</td><td>Check permission boundary or session policy</td></tr>
+        <tr><td>KMS key deleted, data gone?</td><td>7–30 day deletion window — cancel if within window</td></tr>
+        <tr><td>CloudTrail not logging S3 object access</td><td>Data events must be explicitly enabled</td></tr>
+        <tr><td>New account, GuardDuty not detecting</td><td>Must be enabled per region OR use Organizations auto-enable</td></tr>
+        <tr><td>Access Analyzer shows no findings</td><td>Resource IS private — only shows external access</td></tr>
+        <tr><td>Shield Advanced SRT can help</td><td>Only if pre-authorized AND subscribed to Advanced</td></tr>
+        <tr><td>ACM cert on EC2 directly</td><td>Not supported — ACM public certs for integrated services only</td></tr>
+        <tr><td>Deny in SCP for management account</td><td>SCPs do NOT apply to management account</td></tr>
+        <tr><td>AdministratorAccess + permission boundary</td><td>Boundary is the effective limit — Admin is capped</td></tr>
+        <tr><td>First step when key exposed in GitHub</td><td>DISABLE the key (not rotate — old key still works until disabled)</td></tr>
+        <tr><td>Revoke active IAM role sessions</td><td>Attach deny policy with aws:TokenIssueTime condition</td></tr>
+      </table>
+    </div>
+  </div>
+
+  </div><!-- end guideContent -->
+</div>
+
+<!-- ============================================================ FLASHCARDS TAB -->
+<div class="content" id="tab-flashcards">
+  <div class="fc-controls">
+    <button class="fc-filter active" onclick="filterCards('all', this)">All</button>
+    <button class="fc-filter" onclick="filterCards('D1', this)">D1</button>
+    <button class="fc-filter" onclick="filterCards('D2', this)">D2</button>
+    <button class="fc-filter" onclick="filterCards('D3', this)">D3</button>
+    <button class="fc-filter" onclick="filterCards('D4', this)">D4</button>
+    <button class="fc-filter" onclick="filterCards('D5', this)">D5</button>
+    <button class="fc-filter" onclick="filterCards('D6', this)">D6</button>
+    <span class="fc-stat" id="fcStat">Card 1 of 60</span>
+  </div>
+  <div class="fc-progress-bar"><div class="fc-progress-fill" id="fcProgressFill" style="width:0%"></div></div>
+
+  <div class="flashcard-container" onclick="flipCard()">
+    <div class="flashcard" id="flashcard">
+      <div class="fc-front">
+        <div class="fc-domain-tag" id="fcDomainTag">D4 · IAM</div>
+        <div class="fc-question" id="fcQuestion">Loading...</div>
+        <div class="fc-tap-hint">Tap to reveal answer</div>
+      </div>
+      <div class="fc-back">
+        <div class="fc-domain-tag" id="fcDomainTag2">D4 · IAM</div>
+        <div class="fc-answer" id="fcAnswer">Answer</div>
+        <div class="fc-tap-hint">Rate this card ↓</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fc-nav" id="fcRatingBtns" style="display:none">
+    <button class="fc-btn again" onclick="rateCard(0)">Again</button>
+    <button class="fc-btn hard" onclick="rateCard(1)">Hard</button>
+    <button class="fc-btn good" onclick="rateCard(2)">Good</button>
+    <button class="fc-btn easy" onclick="rateCard(3)">Easy</button>
+  </div>
+  <div class="fc-nav" id="fcNextBtn">
+    <button class="fc-btn" style="background:var(--bg3);border:1px solid var(--border)" onclick="prevCard()">← Prev</button>
+    <button class="fc-btn" style="background:var(--accent2);color:white" onclick="nextCard()">Next →</button>
+  </div>
+</div>
+
+<!-- ============================================================ PROGRESS TAB -->
+<div class="content" id="tab-progress">
+  <div class="overall-progress">
+    <div class="op-title">Overall Study Progress</div>
+    <div class="op-pct" id="overallPct">0%</div>
+    <div class="op-bar"><div class="op-bar-fill" id="overallBar" style="width:0%"></div></div>
+    <div class="op-stats">
+      <div class="op-stat"><div class="op-stat-num" id="statDone">0</div><div class="op-stat-label">Days Done</div></div>
+      <div class="op-stat"><div class="op-stat-num" id="statLeft">56</div><div class="op-stat-label">Days Left</div></div>
+      <div class="op-stat"><div class="op-stat-num" id="statStreak">0</div><div class="op-stat-label">Streak 🔥</div></div>
+    </div>
+  </div>
+
+  <div id="weekList"></div>
+</div>
+
+<!-- ============================================================ TIMER TAB -->
+<div class="content" id="tab-timer">
+  <div class="timer-card">
+    <div class="timer-display" id="timerDisplay">2:50:00</div>
+    <div class="timer-label" id="timerLabel">Full Exam (170 min)</div>
+    <div class="timer-btns">
+      <button class="timer-btn primary" id="timerStartBtn" onclick="timerStartStop()">▶ Start</button>
+      <button class="timer-btn" onclick="timerReset()">↺ Reset</button>
+    </div>
+    <div class="timer-presets">
+      <div class="timer-preset" onclick="setTimer(10200, 'Full Exam (170 min)')">170 min</div>
+      <div class="timer-preset" onclick="setTimer(3600, '1 Hour Study Block')">1 hour</div>
+      <div class="timer-preset" onclick="setTimer(5400, '90 Min Study Block')">90 min</div>
+      <div class="timer-preset" onclick="setTimer(1800, '30 Min Review')">30 min</div>
+      <div class="timer-preset" onclick="setTimer(1500, 'Pomodoro (25 min)')">Pomodoro</div>
+      <div class="timer-preset" onclick="setTimer(300, '5 Min Break')">5 min break</div>
+    </div>
+  </div>
+
+  <div class="score-tracker">
+    <div class="score-title">Practice Exam Score Log</div>
+    <div class="score-input-row">
+      <input class="score-input" id="scoreInput" type="number" min="100" max="1000" placeholder="Score (100–1000)" />
+      <input class="score-input" id="scoreLabel" type="text" placeholder="Label (e.g. Mock #1)" style="flex:1.5" />
+      <button class="add-score-btn" onclick="addScore()">Add</button>
+    </div>
+    <div id="scoreList"><div class="empty-state">No scores logged yet. Add your first practice exam score above.</div></div>
+  </div>
+</div>
+
+<!-- ============================================================ CHEAT SHEET TAB -->
+<div class="content" id="tab-cheatsheet">
+  <div class="cheat-grid">
+
+    <div class="cheat-card">
+      <h4>🔍 GuardDuty Finding Types</h4>
+      <div class="cheat-item"><span class="cheat-key">Recon:</span><span class="cheat-val">Port scanning, enum</span></div>
+      <div class="cheat-item"><span class="cheat-key">Backdoor:</span><span class="cheat-val">C2, exfil</span></div>
+      <div class="cheat-item"><span class="cheat-key">CryptoCurrency:</span><span class="cheat-val">Mining activity</span></div>
+      <div class="cheat-item"><span class="cheat-key">UnauthorizedAccess:</span><span class="cheat-val">Anomalous API calls</span></div>
+      <div class="cheat-item"><span class="cheat-key">Trojan:</span><span class="cheat-val">Malware-like behavior</span></div>
+      <div class="cheat-item"><span class="cheat-key">NOT enabled by default:</span><span class="cheat-val">EKS audit logs</span></div>
+    </div>
+
+    <div class="cheat-card">
+      <h4>🔑 KMS Key Policy Rules</h4>
+      <div class="cheat-item"><span class="cheat-key">Root must be in key policy</span><span class="cheat-val">Prevents lockout</span></div>
+      <div class="cheat-item"><span class="cheat-key">Cross-account</span><span class="cheat-val">Key policy + IAM both</span></div>
+      <div class="cheat-item"><span class="cheat-key">kms:ViaService</span><span class="cheat-val">Restrict to service</span></div>
+      <div class="cheat-item"><span class="cheat-key">Deletion window</span><span class="cheat-val">7–30 days (cancel ok)</span></div>
+      <div class="cheat-item"><span class="cheat-key">CMK cost</span><span class="cheat-val">$1/month</span></div>
+      <div class="cheat-item"><span class="cheat-key">FIPS Level 3</span><span class="cheat-val">CloudHSM, not KMS</span></div>
+    </div>
+
+    <div class="cheat-card">
+      <h4>🏛️ SCP Rules</h4>
+      <div class="cheat-item"><span class="cheat-key">Grants permissions?</span><span class="cheat-val">NO — restrict only</span></div>
+      <div class="cheat-item"><span class="cheat-key">Applies to mgmt acct?</span><span class="cheat-val">NO</span></div>
+      <div class="cheat-item"><span class="cheat-key">Affects SLRs?</span><span class="cheat-val">NO</span></div>
+      <div class="cheat-item"><span class="cheat-key">FullAWSAccess default?</span><span class="cheat-val">Must attach manually</span></div>
+      <div class="cheat-item"><span class="cheat-key">Deny inheritance</span><span class="cheat-val">Propagates down OUs</span></div>
+    </div>
+
+    <div class="cheat-card">
+      <h4>🌐 WAF Attachment Points</h4>
+      <div class="cheat-item"><span class="cheat-key">CloudFront</span><span class="cheat-val">✅</span></div>
+      <div class="cheat-item"><span class="cheat-key">ALB</span><span class="cheat-val">✅</span></div>
+      <div class="cheat-item"><span class="cheat-key">API Gateway</span><span class="cheat-val">✅</span></div>
+      <div class="cheat-item"><span class="cheat-key">AppSync</span><span class="cheat-val">✅</span></div>
+      <div class="cheat-item"><span class="cheat-key">Cognito User Pool</span><span class="cheat-val">✅</span></div>
+      <div class="cheat-item"><span class="cheat-key">EC2 directly</span><span class="cheat-val">❌</span></div>
+    </div>
+
+    <div class="cheat-card">
+      <h4>🔐 S3 Encryption</h4>
+      <div class="cheat-item"><span class="cheat-key">SSE-S3</span><span class="cheat-val">AWS managed, free</span></div>
+      <div class="cheat-item"><span class="cheat-key">SSE-KMS</span><span class="cheat-val">CMK, CloudTrail logs</span></div>
+      <div class="cheat-item"><span class="cheat-key">SSE-C</span><span class="cheat-val">Customer key per req</span></div>
+      <div class="cheat-item"><span class="cheat-key">CSE</span><span class="cheat-val">Encrypt before upload</span></div>
+      <div class="cheat-item"><span class="cheat-key">Reject unencrypted</span><span class="cheat-val">Bucket policy Deny</span></div>
+      <div class="cheat-item"><span class="cheat-key">Reduce KMS cost</span><span class="cheat-val">S3 Bucket Keys</span></div>
+    </div>
+
+    <div class="cheat-card">
+      <h4>👤 Cognito</h4>
+      <div class="cheat-item"><span class="cheat-key">User Pool</span><span class="cheat-val">Auth → JWT tokens</span></div>
+      <div class="cheat-item"><span class="cheat-key">Identity Pool</span><span class="cheat-val">Authz → AWS creds</span></div>
+      <div class="cheat-item"><span class="cheat-key">Federation</span><span class="cheat-val">SAML / OIDC / Social</span></div>
+      <div class="cheat-item"><span class="cheat-key">STS used by</span><span class="cheat-val">Identity Pool</span></div>
+    </div>
+
+    <div class="cheat-card">
+      <h4>🛡️ Shield</h4>
+      <div class="cheat-item"><span class="cheat-key">Standard cost</span><span class="cheat-val">Free, automatic</span></div>
+      <div class="cheat-item"><span class="cheat-key">Advanced cost</span><span class="cheat-val">$3,000/month</span></div>
+      <div class="cheat-item"><span class="cheat-key">SRT access</span><span class="cheat-val">Advanced only</span></div>
+      <div class="cheat-item"><span class="cheat-key">Cost protection</span><span class="cheat-val">Advanced only</span></div>
+      <div class="cheat-item"><span class="cheat-key">L7 DDoS</span><span class="cheat-val">Advanced + WAF</span></div>
+    </div>
+
+    <div class="cheat-card">
+      <h4>📋 Compliance Quick Picks</h4>
+      <div class="cheat-item"><span class="cheat-key">Download SOC report</span><span class="cheat-val">AWS Artifact</span></div>
+      <div class="cheat-item"><span class="cheat-key">PCI-DSS evidence</span><span class="cheat-val">Audit Manager</span></div>
+      <div class="cheat-item"><span class="cheat-key">Config drift detect</span><span class="cheat-val">AWS Config</span></div>
+      <div class="cheat-item"><span class="cheat-key">Find PII in S3</span><span class="cheat-val">Amazon Macie</span></div>
+      <div class="cheat-item"><span class="cheat-key">Aggregate findings</span><span class="cheat-val">Security Hub</span></div>
+      <div class="cheat-item"><span class="cheat-key">Investigate finding</span><span class="cheat-val">Amazon Detective</span></div>
+    </div>
+
+    <div class="cheat-card">
+      <h4>🔄 IR Automation Pattern</h4>
+      <div class="cheat-item"><span class="cheat-key">Detect</span><span class="cheat-val">GuardDuty / Config</span></div>
+      <div class="cheat-item"><span class="cheat-key">Route</span><span class="cheat-val">EventBridge rule</span></div>
+      <div class="cheat-item"><span class="cheat-key">Simple action</span><span class="cheat-val">Lambda function</span></div>
+      <div class="cheat-item"><span class="cheat-key">Complex workflow</span><span class="cheat-val">Step Functions</span></div>
+      <div class="cheat-item"><span class="cheat-key">Runbook</span><span class="cheat-val">SSM Automation</span></div>
+      <div class="cheat-item"><span class="cheat-key">Notify</span><span class="cheat-val">SNS → email/Slack</span></div>
+    </div>
+
+    <div class="cheat-card">
+      <h4>🔗 VPC Endpoints</h4>
+      <div class="cheat-item"><span class="cheat-key">Gateway: S3 + DynamoDB</span><span class="cheat-val">Free, route table</span></div>
+      <div class="cheat-item"><span class="cheat-key">Interface: all others</span><span class="cheat-val">$/hr, ENI in subnet</span></div>
+      <div class="cheat-item"><span class="cheat-key">Private S3</span><span class="cheat-val">Gateway + bucket policy</span></div>
+      <div class="cheat-item"><span class="cheat-key">SourceVpce condition</span><span class="cheat-val">Restrict to endpoint</span></div>
+    </div>
+
+    <div class="cheat-card">
+      <h4>🔓 ACM Certs</h4>
+      <div class="cheat-item"><span class="cheat-key">Public cert cost</span><span class="cheat-val">Free + auto-renew</span></div>
+      <div class="cheat-item"><span class="cheat-key">Export key?</span><span class="cheat-val">No (by design)</span></div>
+      <div class="cheat-item"><span class="cheat-key">Works with EC2?</span><span class="cheat-val">No — use Private CA</span></div>
+      <div class="cheat-item"><span class="cheat-key">Works with ALB?</span><span class="cheat-val">Yes</span></div>
+      <div class="cheat-item"><span class="cheat-key">mTLS / internal PKI</span><span class="cheat-val">ACM Private CA</span></div>
+    </div>
+
+    <div class="cheat-card">
+      <h4>⚙️ Control Tower</h4>
+      <div class="cheat-item"><span class="cheat-key">Preventive guardrail</span><span class="cheat-val">SCP (blocks)</span></div>
+      <div class="cheat-item"><span class="cheat-key">Detective guardrail</span><span class="cheat-val">Config rule (alerts)</span></div>
+      <div class="cheat-item"><span class="cheat-key">Proactive guardrail</span><span class="cheat-val">CloudFormation hook</span></div>
+      <div class="cheat-item"><span class="cheat-key">New account security</span><span class="cheat-val">Account Factory</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================================ GAME TAB -->
+<div class="content" id="tab-game">
+
+  <!-- LOBBY -->
+  <div class="game-lobby" id="gameLobby">
+    <h2>⚔️ SECURITY ARENA</h2>
+    <p>Choose a game mode and test your knowledge. Beat your high score.</p>
+    <div class="game-modes">
+      <div class="mode-card selected" onclick="selectMode('blitz', this)">
+        <div class="mode-icon">⚡</div>
+        <div class="mode-name">Security Blitz</div>
+        <div class="mode-desc">60 rapid-fire questions. 12 sec each. 3 lives. Streak multiplier.</div>
+      </div>
+      <div class="mode-card" onclick="selectMode('judge', this)">
+        <div class="mode-icon">⚖️</div>
+        <div class="mode-name">Policy Judge</div>
+        <div class="mode-desc">Read the IAM scenario. Tap ALLOW or DENY. No timer — just think.</div>
+      </div>
+      <div class="mode-card" onclick="selectMode('showdown', this)">
+        <div class="mode-icon">🎯</div>
+        <div class="mode-name">Service Showdown</div>
+        <div class="mode-desc">Read the requirement. Pick the right AWS service. 10 sec on the clock.</div>
+      </div>
+      <div class="mode-card" onclick="selectMode('force', this)" style="border-color:#4fc3f7;background:linear-gradient(135deg,#05080f,#0a1525)">
+        <div class="mode-icon">⚔️</div>
+        <div class="mode-name" style="color:#4fc3f7">Jedi Force Trial</div>
+        <div class="mode-desc" style="color:#7ab8d4">AWS security battles written in Star Wars lore. Use the Force (3 hints) wisely.</div>
+      </div>
+    </div>
+    <button class="game-start-btn" onclick="startGame()">▶ START MISSION</button>
+    <div class="game-hiscores">
+      <div class="game-hi"><div class="game-hi-label">Blitz Best</div><div class="game-hi-val" id="hiBlitz">—</div></div>
+      <div class="game-hi"><div class="game-hi-label">Judge Best</div><div class="game-hi-val" id="hiJudge">—</div></div>
+      <div class="game-hi"><div class="game-hi-label">Showdown Best</div><div class="game-hi-val" id="hiShowdown">—</div></div>
+      <div class="game-hi" style="border-color:#4fc3f7"><div class="game-hi-label" style="color:#4fc3f7">Force Trial Best</div><div class="game-hi-val" id="hiForce" style="color:#4fc3f7">—</div></div>
+    </div>
+  </div>
+
+  <!-- ACTIVE GAME ARENA -->
+  <div class="game-arena" id="gameArena">
+    <div class="game-hud">
+      <div class="hud-lives" id="hudLives">❤️❤️❤️</div>
+      <div class="hud-score" id="hudScore">0</div>
+      <div class="hud-streak" id="hudStreak"></div>
+    </div>
+    <div class="game-timer-bar"><div class="game-timer-fill" id="gameTimerFill" style="width:100%"></div></div>
+
+    <!-- BLITZ / SHOWDOWN question layout -->
+    <div id="blitzArea">
+      <div class="game-q-card" id="gqCard">
+        <div class="game-q-domain" id="gqDomain"></div>
+        <div class="game-q-text" id="gqText"></div>
+      </div>
+      <div class="force-power-row" id="forcePowerRow" style="display:none">
+        <button class="force-power-btn" id="forcePowerBtn" onclick="useForcePower()">⚡ Use the Force <span id="forcePowerCount">(3 left)</span></button>
+      </div>
+      <div class="game-options" id="gqOptions"></div>
+      <div class="game-feedback" id="gqFeedback"></div>
+      <button class="game-next-btn" id="gqNext" onclick="nextGameQ()">Next →</button>
+    </div>
+
+    <!-- POLICY JUDGE layout -->
+    <div id="judgeArea" style="display:none">
+      <div class="judge-card">
+        <div class="game-q-domain" id="jDomain"></div>
+        <div class="judge-scenario" id="jScenario"></div>
+      </div>
+      <div class="judge-btns">
+        <button class="judge-btn allow" id="jAllow" onclick="judgeAnswer('ALLOW')">✅ ALLOW</button>
+        <button class="judge-btn deny"  id="jDeny"  onclick="judgeAnswer('DENY')">🚫 DENY</button>
+      </div>
+      <div class="game-feedback" id="jFeedback" style="margin-top:12px"></div>
+      <button class="game-next-btn" id="jNext" style="margin-top:10px" onclick="nextGameQ()">Next →</button>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="game-results" id="gameResults">
+    <div class="result-score" id="rScore">0</div>
+    <div class="result-label">FINAL SCORE</div>
+    <div class="result-new-hi" id="rNewHi" style="display:none">🏆 NEW HIGH SCORE!</div>
+    <div class="result-stats">
+      <div class="result-stat"><div class="result-stat-num" id="rCorrect">0</div><div class="result-stat-label">Correct</div></div>
+      <div class="result-stat"><div class="result-stat-num" id="rWrong">0</div><div class="result-stat-label">Wrong</div></div>
+      <div class="result-stat"><div class="result-stat-num" id="rBestStreak">0</div><div class="result-stat-label">Best Streak</div></div>
+    </div>
+    <div class="result-msg" id="rMsg"></div>
+    <div class="result-sub" id="rSub"></div>
+    <div class="result-btns">
+      <button class="result-btn primary" onclick="startGame()">▶ Play Again</button>
+      <button class="result-btn" onclick="backToLobby()">← Change Mode</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============================================================ THEME
+let isDark = true;
+function toggleTheme() {
+  isDark = !isDark;
+  document.body.classList.toggle('light', !isDark);
+  document.getElementById('themeBtn').textContent = isDark ? '☀️' : '🌌';
+}
+
+// ============================================================ STARFIELD
+(function() {
+  const canvas = document.getElementById('starfield');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+  const N = 280;
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function initStars() {
+    stars = [];
+    for (let i = 0; i < N; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.5 + 0.3,
+        alpha: Math.random(),
+        dAlpha: (Math.random() * 0.008 + 0.002) * (Math.random() < 0.5 ? 1 : -1),
+        color: Math.random() < 0.15 ? '#4fc3f7' : Math.random() < 0.08 ? '#FFE81F' : '#ffffff',
+      });
+    }
+  }
+
+  function draw() {
+    if (document.body.classList.contains('light')) {
+      requestAnimationFrame(draw);
+      return;
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    stars.forEach(s => {
+      s.alpha += s.dAlpha;
+      if (s.alpha > 1 || s.alpha < 0) { s.dAlpha *= -1; s.alpha = Math.max(0, Math.min(1, s.alpha)); }
+      ctx.globalAlpha = s.alpha;
+      ctx.fillStyle = s.color;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  initStars();
+  draw();
+  window.addEventListener('resize', () => { resize(); initStars(); });
+})();
+
+// ============================================================ TABS
+function showTab(name) {
+  document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const tabs = document.querySelectorAll('.tab');
+  const tabMap = ['guide','flashcards','progress','timer','cheatsheet','game'];
+  tabs[tabMap.indexOf(name)].classList.add('active');
+}
+
+// ============================================================ DOMAINS
+function toggleDomain(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+// ============================================================ SEARCH
+function searchGuide(q) {
+  const cards = document.querySelectorAll('.domain-card');
+  const term = q.toLowerCase().trim();
+  if (!term) { cards.forEach(c => { c.classList.remove('hidden'); }); return; }
+  cards.forEach(card => {
+    const text = card.textContent.toLowerCase();
+    card.classList.toggle('hidden', !text.includes(term));
+    if (text.includes(term) && term.length > 1) card.classList.add('open');
+  });
+}
+
+// ============================================================ FLASHCARDS
+const allCards = [
+  {domain:'D4',tag:'D4 · IAM',q:'What is the IAM policy evaluation order?',a:'1. Explicit DENY (anywhere) → DENY\n2. SCP doesn\'t allow → DENY\n3. Resource-based policy grants → ALLOW\n4. Identity-based policy grants → ALLOW\n5. Permission Boundary denies → DENY\n6. Session Policy denies → DENY\n7. Default → DENY'},
+  {domain:'D4',tag:'D4 · IAM',q:'For cross-account S3 access, what must BOTH be true?',a:'The S3 bucket policy in the target account must grant access to the external principal, AND the IAM policy in the source account must allow the s3:* action. Both sides must allow.'},
+  {domain:'D4',tag:'D4 · IAM',q:'Can SCPs grant permissions to IAM users?',a:'NO. SCPs only RESTRICT — they never grant permissions. They set the maximum permissions for all principals in an account/OU, but cannot grant anything not already in an IAM policy.'},
+  {domain:'D4',tag:'D4 · IAM',q:'What does a permission boundary do?',a:'A permission boundary sets the MAXIMUM permissions a user or role can have. It does not grant permissions itself — it only restricts. If AdministratorAccess is attached but boundary only allows S3, the effective permissions are S3 only.'},
+  {domain:'D4',tag:'D4 · IAM',q:'Cognito User Pool vs. Identity Pool — what does each return?',a:'User Pool: handles authentication (sign-in), returns JWT tokens (ID, access, refresh)\nIdentity Pool: handles authorization, exchanges tokens for temporary AWS credentials via STS'},
+  {domain:'D4',tag:'D4 · IAM',q:'What is ABAC and when do you use it?',a:'Attribute-Based Access Control — uses tags as attributes in conditions (e.g., aws:ResourceTag/Team == aws:PrincipalTag/Team). Use when you have many teams/resources and RBAC would require hundreds of roles. Requires consistent tagging.'},
+  {domain:'D4',tag:'D4 · IAM',q:'What does IAM Access Analyzer detect?',a:'Resources shared with external principals OUTSIDE your zone of trust (account or org). Analyzes: S3 buckets, IAM roles, KMS keys, Lambda, SQS, Secrets Manager. No finding = resource is private (good).'},
+  {domain:'D4',tag:'D4 · IAM',q:'How do you revoke all active sessions for a compromised IAM role?',a:'Attach an inline deny policy with condition: aws:TokenIssueTime < [time of compromise]. This invalidates all tokens issued before that time without needing to delete the role.'},
+  {domain:'D4',tag:'D4 · IAM',q:'Do SCPs apply to the management account?',a:'NO. SCPs never apply to the management (root) account. They only apply to member accounts in the organization.'},
+  {domain:'D4',tag:'D4 · IAM',q:'What is the difference between IAM Identity Center and Cognito?',a:'IAM Identity Center (SSO): for workforce/employees accessing multiple AWS accounts and business apps. Connects to corporate IdP.\nCognito: for application end-users (customers/consumers) accessing your app and AWS resources.'},
+  {domain:'D5',tag:'D5 · Data Protection',q:'Describe envelope encryption step by step.',a:'1. KMS generates a data key (plaintext + encrypted copy)\n2. Use plaintext data key to encrypt data locally\n3. Store encrypted data key alongside ciphertext\n4. DELETE plaintext key from memory\n5. Decrypt: call KMS to decrypt encrypted data key → use it to decrypt data'},
+  {domain:'D5',tag:'D5 · Data Protection',q:'KMS vs. CloudHSM — when do you choose CloudHSM?',a:'Choose CloudHSM when:\n• FIPS 140-2 Level 3 required (KMS is Level 2)\n• Need dedicated, single-tenant hardware\n• Need full HSM management control\n• Custom cryptographic algorithms needed\n• Regulatory compliance requires customer-managed hardware'},
+  {domain:'D5',tag:'D5 · Data Protection',q:'How do you reject S3 uploads that are not encrypted?',a:'Add a bucket policy with a Deny effect when the condition aws:SecureTransport is false OR when the s3:x-amz-server-side-encryption header is absent/wrong value.'},
+  {domain:'D5',tag:'D5 · Data Protection',q:'Secrets Manager vs. Parameter Store — key differences?',a:'Secrets Manager: ~$0.40/secret/month, native auto-rotation built-in, for DB passwords/API keys\nParameter Store: free (standard), no auto-rotation (custom only), for config values + basic secrets\nChoose Secrets Manager when rotation is required.'},
+  {domain:'D5',tag:'D5 · Data Protection',q:'Can you export an ACM public certificate private key?',a:'NO. ACM public certificate private keys cannot be exported — by design for security. ACM public certs can only be deployed to: CloudFront, ALB, API Gateway, Elastic Beanstalk. NOT EC2 directly.'},
+  {domain:'D5',tag:'D5 · Data Protection',q:'What is S3 Bucket Key and why does it matter?',a:'S3 Bucket Key generates a bucket-level data key from your CMK, reducing direct KMS API calls from per-object to per-bucket period. Dramatically reduces KMS costs (up to 99% fewer KMS requests) for SSE-KMS buckets with high object counts.'},
+  {domain:'D5',tag:'D5 · Data Protection',q:'For cross-account KMS key use, what is required?',a:'BOTH must allow it:\n1. The KMS key policy in the key-owning account must grant the external principal kms:Decrypt (and other needed actions)\n2. The IAM policy in the using account must allow the kms:* actions\nBoth sides required — key policy alone is not sufficient.'},
+  {domain:'D5',tag:'D5 · Data Protection',q:'What does Amazon Macie do?',a:'Macie discovers and classifies sensitive data (PII, credentials, financial data) in S3 buckets. It is NOT a threat detection tool (that\'s GuardDuty). Findings integrate with Security Hub. Centrally managed via Organizations.'},
+  {domain:'D3',tag:'D3 · Infrastructure',q:'Security Groups vs. NACLs — what are the 4 key differences?',a:'Security Groups: instance-level (ENI), STATEFUL (return traffic auto-allowed), ALLOW rules only, all rules evaluated\nNACLs: subnet-level, STATELESS (must allow return traffic explicitly), ALLOW and DENY rules, rules evaluated lowest-number-first'},
+  {domain:'D3',tag:'D3 · Infrastructure',q:'VPC Gateway endpoint vs. Interface endpoint — when to use each?',a:'Gateway endpoint: S3 and DynamoDB only, FREE, adds route table entry. Best for S3/DynamoDB in same region.\nInterface endpoint (PrivateLink): all other AWS services, costs $/hr + data, creates ENI in your subnet. Use for EC2 calling SSM, KMS, Secrets Manager, etc.'},
+  {domain:'D3',tag:'D3 · Infrastructure',q:'Why enforce IMDSv2 and how?',a:'IMDSv2 requires a session-oriented PUT request to get a token before accessing metadata — prevents SSRF attacks that could steal role credentials via metadata endpoint.\nEnforce: set HttpTokens=required in instance metadata options (can enforce via SCP or Config rule).'},
+  {domain:'D3',tag:'D3 · Infrastructure',q:'Where can AWS WAF be attached?',a:'CloudFront, ALB (Application Load Balancer), API Gateway (REST + HTTP APIs), AppSync GraphQL API, Cognito User Pool. Cannot be attached directly to EC2 or NLB.'},
+  {domain:'D3',tag:'D3 · Infrastructure',q:'AWS Network Firewall vs. WAF vs. Security Groups — when to use each?',a:'Security Groups: instance-level allow/deny, layer 3/4, stateful\nWAF: web application layer (L7), HTTP/HTTPS inspection, SQLi/XSS rules\nNetwork Firewall: deep packet inspection, Suricata rules, stateful/stateless, VPC-level, for non-HTTP traffic or advanced inspection'},
+  {domain:'D3',tag:'D3 · Infrastructure',q:'Why use Systems Manager Session Manager over bastion hosts?',a:'No open inbound ports (no port 22/3389). No SSH key pairs to manage. Access controlled entirely by IAM. Full audit trail logged to CloudWatch Logs and/or S3. Works through NAT/private subnets. Accessible from console or CLI.'},
+  {domain:'D3',tag:'D3 · Infrastructure',q:'AWS Shield Standard vs. Advanced — what does Advanced add?',a:'Advanced adds: L7 DDoS protection (with WAF), Shield Response Team (SRT) access, enhanced detection, DDoS cost protection (billing credits for scaling during attacks), 24/7 DDoS attack notifications. Cost: $3,000/month.'},
+  {domain:'D1',tag:'D1 · Detection',q:'What does CloudTrail log by default vs. what requires opt-in?',a:'Default (management events): API calls for creating/modifying/deleting AWS resources — console sign-ins, IAM changes, EC2 creation, etc.\nOpt-in (data events): S3 object-level operations (GetObject, PutObject, DeleteObject), Lambda function invocations, DynamoDB item-level operations'},
+  {domain:'D1',tag:'D1 · Detection',q:'What data sources does GuardDuty analyze automatically?',a:'GuardDuty automatically analyzes:\n• CloudTrail management events\n• VPC Flow Logs\n• DNS query logs\nRequires separate enablement: EKS audit logs, S3 data events, RDS login activity, EBS malware protection'},
+  {domain:'D1',tag:'D1 · Detection',q:'Security Hub vs. GuardDuty vs. Config — what does each do?',a:'GuardDuty: behavior anomaly THREAT DETECTION (analyzes logs for threats)\nConfig: configuration drift and COMPLIANCE monitoring (tracks resource config state)\nSecurity Hub: AGGREGATES findings from both (and others), runs compliance standard checks, normalizes in ASFF format'},
+  {domain:'D1',tag:'D1 · Detection',q:'When do you use Amazon Detective?',a:'Detective is for POST-INCIDENT INVESTIGATION only — not alerting. When a GuardDuty finding fires and you need to understand WHY (what IP, what user, what timeline, what lateral movement occurred). Uses graph models correlating CloudTrail, VPC Flow Logs, GuardDuty findings.'},
+  {domain:'D1',tag:'D1 · Detection',q:'How do you centralize security findings across 100 AWS accounts?',a:'Enable Security Hub with AWS Organizations integration. Designate a delegated administrator account (Security Tooling account). Security Hub automatically aggregates ASFF-formatted findings from all member accounts. Enable cross-region aggregation for multi-region coverage.'},
+  {domain:'D1',tag:'D1 · Detection',q:'What is CloudTrail Insights?',a:'CloudTrail Insights detects UNUSUAL API activity — specifically unusual call rates or error rates for write management events. It compares current activity against a baseline. Different from standard CloudTrail logging — Insights actively identifies anomalies.'},
+  {domain:'D2',tag:'D2 · Incident Response',q:'What is the first step when an IAM access key is exposed publicly?',a:'DISABLE the access key immediately. Not delete, not rotate — DISABLE. Deletion is fine but rotation first creates a new key while the old one still works. Disabling immediately prevents further use while preserving the key for investigation.'},
+  {domain:'D2',tag:'D2 · Incident Response',q:'Describe the automated GuardDuty-to-remediation pattern.',a:'GuardDuty finding → EventBridge rule (event pattern matching finding type/severity) → Lambda function or SSM Automation (take action: isolate EC2, disable key, notify SNS) → SNS notification to security team. For complex multi-step: use Step Functions instead of Lambda.'},
+  {domain:'D2',tag:'D2 · Incident Response',q:'How do you perform forensics on a compromised EC2 without contaminating evidence?',a:'1. Create EBS snapshot of compromised instance volumes\n2. Share snapshot to isolated forensic account\n3. Create new forensic instance in isolated VPC\n4. Attach the snapshot as a SECONDARY volume (read-only mount)\n5. Analyze without ever writing to the forensic volume\n6. Hash the volume before analysis for chain of custody'},
+  {domain:'D2',tag:'D2 · Incident Response',q:'What AWS service would you use to standardize IR runbooks across the org?',a:'AWS Systems Manager Automation documents. They provide standardized, repeatable, auditable runbooks. Can be triggered automatically (via EventBridge) or manually. Can use pre-built AWS-owned documents or create custom ones. OpsCenter tracks the associated incidents.'},
+  {domain:'D6',tag:'D6 · Governance',q:'Control Tower: Preventive vs. Detective vs. Proactive guardrails',a:'Preventive: implemented as SCPs — BLOCKS the action before it happens\nDetective: implemented as Config rules — ALERTS after the violation\nProactive: implemented as CloudFormation hooks — CHECKS before resource is created via CFN\nMandatory guardrails cannot be disabled.'},
+  {domain:'D6',tag:'D6 · Governance',q:'What is the recommended multi-account structure for security?',a:'Management account: Org root only, no workloads\nSecurity Tooling account: GuardDuty admin, Security Hub admin, delegated admin for security services\nLog Archive account: immutable CloudTrail/Config logs (restrict delete permissions)\nNetwork account: Transit Gateway, shared networking\nWorkload accounts: separated by environment (prod/dev)'},
+  {domain:'D6',tag:'D6 · Governance',q:'AWS Artifact vs. Audit Manager vs. Config — what does each do for compliance?',a:'Artifact: download AWS\'s own compliance reports (SOC 1/2, ISO, PCI-DSS) for your auditors — shows AWS is compliant\nAudit Manager: auto-collect evidence of YOUR compliance across AWS services, maps to frameworks (HIPAA, PCI-DSS, SOC2)\nConfig: continuous configuration compliance monitoring and drift detection for your resources'},
+  {domain:'D6',tag:'D6 · Governance',q:'Does an SCP Deny at root OU apply to the management account?',a:'NO. SCPs NEVER apply to the management account — even a Deny at the root OU level. The management account is fully exempt from all SCPs. This is by design. It\'s why the management account should have zero workloads.'},
+  {domain:'D6',tag:'D6 · Governance',q:'What AWS service scans S3 for sensitive data like PII and credit card numbers?',a:'Amazon Macie. It uses machine learning to discover and classify sensitive data in S3. NOT GuardDuty (threat detection). Macie generates findings that integrate with Security Hub. Managed centrally via Organizations with delegated admin.'},
+  {domain:'D6',tag:'D6 · Governance',q:'What is new in SCS-C03 that was NOT in SCS-C02? (GenAI)',a:'Domain coverage of Generative AI security:\n• Amazon Bedrock guardrails (content filtering, topic blocking, PII redaction)\n• IAM controls for Bedrock foundation model access\n• Model invocation logging to S3/CloudWatch\n• SageMaker VPC isolation and encryption\n• Prompt injection awareness and input validation'},
+  {domain:'D4',tag:'D4 · IAM',q:'What is the difference between a trust policy and a permissions policy on an IAM role?',a:'Trust policy (resource-based): defines WHO can assume the role (which principals, services, or accounts). Lives on the role itself.\nPermissions policy (identity-based): defines WHAT the role can DO (which AWS actions/resources it can access).\nBoth are required for a role to work.'},
+  {domain:'D5',tag:'D5 · Data Protection',q:'For SSE-KMS on S3, what two costs are involved?',a:'1. KMS CMK cost: $1/month for the customer-managed key\n2. KMS API request cost: every S3 object encryption/decryption calls KMS GenerateDataKey or Decrypt — costs per 10,000 API calls.\nSolution for high volume: enable S3 Bucket Keys to dramatically reduce KMS API calls.'},
+  {domain:'D3',tag:'D3 · Infrastructure',q:'How does AWS Firewall Manager differ from AWS WAF?',a:'WAF: lets you CREATE and manage WAF rules for a single account/resource.\nFirewall Manager: lets you CENTRALLY DEPLOY and ENFORCE WAF rules, Shield subscriptions, Security Groups, and Network Firewall rules across your entire AWS Organization. Requires Organizations and a Firewall Manager admin account.'},
+  {domain:'D1',tag:'D1 · Detection',q:'How do you create an alert for root account logins using CloudWatch?',a:'1. Ensure CloudTrail delivers to CloudWatch Logs log group\n2. Create metric filter on the log group with filter pattern for ConsoleLogin events where userIdentity.type = Root\n3. Create CloudWatch Alarm on that metric\n4. Alarm action → SNS topic → email/notification\nThis is a CIS AWS Foundations Benchmark requirement.'},
+  {domain:'D2',tag:'D2 · Incident Response',q:'What EventBridge event pattern matches a High severity GuardDuty finding?',a:'{"source": ["aws.guardduty"], "detail-type": ["GuardDuty Finding"], "detail": {"severity": [{"numeric": [">=", 7]}]}}\nSeverity 7-8.9 = High. 4-6.9 = Medium. 1-3.9 = Low.'},
+];
+
+let currentCards = [...allCards];
+let currentIndex = 0;
+let isFlipped = false;
+let cardRatings = {};
+
+function filterCards(domain, btn) {
+  document.querySelectorAll('.fc-filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentCards = domain === 'all' ? [...allCards] : allCards.filter(c => c.domain === domain);
+  currentIndex = 0;
+  isFlipped = false;
+  showCard();
+}
+
+function showCard() {
+  if (!currentCards.length) return;
+  const card = currentCards[currentIndex];
+  document.getElementById('fcDomainTag').textContent = card.tag;
+  document.getElementById('fcDomainTag2').textContent = card.tag;
+  document.getElementById('fcQuestion').textContent = card.q;
+  document.getElementById('fcAnswer').style.whiteSpace = 'pre-line';
+  document.getElementById('fcAnswer').textContent = card.a;
+  document.getElementById('fcStat').textContent = `Card ${currentIndex + 1} of ${currentCards.length}`;
+  document.getElementById('fcProgressFill').style.width = `${((currentIndex) / currentCards.length) * 100}%`;
+  const fc = document.getElementById('flashcard');
+  fc.classList.remove('flipped');
+  isFlipped = false;
+  document.getElementById('fcRatingBtns').style.display = 'none';
+  document.getElementById('fcNextBtn').style.display = 'flex';
+}
+
+function flipCard() {
+  const fc = document.getElementById('flashcard');
+  isFlipped = !isFlipped;
+  fc.classList.toggle('flipped', isFlipped);
+  if (isFlipped) {
+    document.getElementById('fcRatingBtns').style.display = 'flex';
+    document.getElementById('fcNextBtn').style.display = 'none';
+  }
+}
+
+function rateCard(rating) {
+  nextCard();
+}
+
+function nextCard() {
+  currentIndex = (currentIndex + 1) % currentCards.length;
+  showCard();
+}
+
+function prevCard() {
+  currentIndex = (currentIndex - 1 + currentCards.length) % currentCards.length;
+  showCard();
+}
+
+showCard();
+
+// ============================================================ PROGRESS
+const weekData = [
+  { week: 1, title: 'Week 1 — Foundations + IAM', days: [
+    { label: 'Monday', desc: 'IAM fundamentals: users, groups, roles, policies, ARNs' },
+    { label: 'Tuesday', desc: 'IAM policy types: identity, resource, SCPs, permission boundaries' },
+    { label: 'Wednesday', desc: 'STS, AssumeRole, cross-account access, federation' },
+    { label: 'Thursday', desc: 'AWS Organizations, SCPs, OU hierarchy' },
+    { label: 'Friday', desc: 'IAM Access Analyzer, Identity Center (SSO), ABAC vs RBAC' },
+    { label: 'Saturday', desc: 'AWS Cognito: User Pools vs. Identity Pools, federation flow' },
+    { label: 'Sunday', desc: 'Review Week 1 + 20 IAM practice questions' },
+  ]},
+  { week: 2, title: 'Week 2 — Data Protection', days: [
+    { label: 'Monday', desc: 'KMS fundamentals: CMKs, data keys, envelope encryption' },
+    { label: 'Tuesday', desc: 'KMS key policies, grants, ViaService, cross-account key use' },
+    { label: 'Wednesday', desc: 'CloudHSM: when vs. KMS, key hierarchy, compliance use cases' },
+    { label: 'Thursday', desc: 'S3 encryption: SSE-S3, SSE-KMS, SSE-C, CSE, S3 Bucket Keys' },
+    { label: 'Friday', desc: 'ACM: certificates, private CA, TLS termination at ALB' },
+    { label: 'Saturday', desc: 'Secrets Manager vs. Parameter Store vs. SSM; rotation' },
+    { label: 'Sunday', desc: 'Review Week 2 + 20 Data Protection practice questions' },
+  ]},
+  { week: 3, title: 'Week 3 — Infrastructure Security', days: [
+    { label: 'Monday', desc: 'VPC security: security groups vs NACLs, stateful vs stateless' },
+    { label: 'Tuesday', desc: 'VPC Flow Logs, VPC endpoints (Interface vs Gateway), PrivateLink' },
+    { label: 'Wednesday', desc: 'AWS WAF: rules, rule groups, managed rules, rate-based rules' },
+    { label: 'Thursday', desc: 'AWS Shield (Standard vs Advanced), DDoS protection layers' },
+    { label: 'Friday', desc: 'Firewall Manager, Network Firewall, Traffic Mirroring' },
+    { label: 'Saturday', desc: 'EC2 security: Session Manager, IMDSv2, instance connect' },
+    { label: 'Sunday', desc: 'Review Week 3 + 20 Infrastructure practice questions' },
+  ]},
+  { week: 4, title: 'Week 4 — Detection & Monitoring', days: [
+    { label: 'Monday', desc: 'CloudTrail: management vs data events, multi-region, Insights' },
+    { label: 'Tuesday', desc: 'CloudWatch Logs, metric filters, alarms for security events' },
+    { label: 'Wednesday', desc: 'GuardDuty: findings, threat intel, suppression, member accounts' },
+    { label: 'Thursday', desc: 'Security Hub: standards, findings aggregation, ASFF format' },
+    { label: 'Friday', desc: 'AWS Config: rules, conformance packs, remediation, aggregator' },
+    { label: 'Saturday', desc: 'Amazon Detective: investigation graphs, GuardDuty integration' },
+    { label: 'Sunday', desc: 'Review Week 4 + 20 Detection practice questions' },
+  ]},
+  { week: 5, title: 'Week 5 — Incident Response', days: [
+    { label: 'Monday', desc: 'IR lifecycle: prepare, detect, contain, eradicate, recover' },
+    { label: 'Tuesday', desc: 'Compromised EC2: isolation, forensics (EBS snapshots), quarantine' },
+    { label: 'Wednesday', desc: 'Compromised IAM: disable, CloudTrail analysis, revoke sessions' },
+    { label: 'Thursday', desc: 'SSM Automation, runbooks, OpsCenter for IR orchestration' },
+    { label: 'Friday', desc: 'EventBridge: rules, targets, event patterns for security automation' },
+    { label: 'Saturday', desc: 'Lambda-based remediation, Step Functions for IR workflows' },
+    { label: 'Sunday', desc: 'Review Week 5 + 20 IR practice questions' },
+  ]},
+  { week: 6, title: 'Week 6 — Security Governance', days: [
+    { label: 'Monday', desc: 'AWS Organizations: OU structure, SCP inheritance, delegated admins' },
+    { label: 'Tuesday', desc: 'Control Tower: landing zone, guardrail types (preventive vs detective)' },
+    { label: 'Wednesday', desc: 'Security Hub cross-account/region aggregation, findings workflow' },
+    { label: 'Thursday', desc: 'Trusted Advisor, Amazon Macie (data classification, S3 scanning)' },
+    { label: 'Friday', desc: 'Audit Manager, AWS Artifact: compliance reports, SOC2, PCI-DSS' },
+    { label: 'Saturday', desc: 'GenAI security: Bedrock guardrails, SageMaker security, prompt injection' },
+    { label: 'Sunday', desc: 'Review Week 6 + 20 Governance practice questions' },
+  ]},
+  { week: 7, title: 'Week 7 — Full Integration Practice', days: [
+    { label: 'Monday', desc: '40-question timed practice exam (mixed domains)' },
+    { label: 'Tuesday', desc: 'Review all wrong answers, categorize by domain' },
+    { label: 'Wednesday', desc: 'High-frequency question patterns + 30 scenario questions' },
+    { label: 'Thursday', desc: 'AWS shared responsibility model, service limits review' },
+    { label: 'Friday', desc: 'SCS-C03 new content: GenAI security deep dive' },
+    { label: 'Saturday', desc: '65-question FULL timed mock exam (170 minutes)' },
+    { label: 'Sunday', desc: 'Comprehensive review: all flagged questions + update flashcards' },
+  ]},
+  { week: 8, title: 'Week 8 — Final Polish', days: [
+    { label: 'Monday', desc: 'Weakest domain deep dive (from Week 7 mock scores)' },
+    { label: 'Tuesday', desc: 'Second weakest domain targeted review' },
+    { label: 'Wednesday', desc: 'Full timed mock exam #2 — must score 800+ to sit' },
+    { label: 'Thursday', desc: 'Review wrong answers only — 1 flashcard per miss' },
+    { label: 'Friday', desc: 'Light review: key service comparisons, edge cases only' },
+    { label: 'Saturday', desc: 'Rest or 30-min max — skim flashcards only' },
+    { label: 'Sunday', desc: '🎯 EXAM DAY' },
+  ]},
+];
+
+let checks = JSON.parse(localStorage.getItem('scs_checks') || '{}');
+
+function buildProgress() {
+  const list = document.getElementById('weekList');
+  list.innerHTML = '';
+  weekData.forEach((week, wi) => {
+    const total = week.days.length;
+    const done = week.days.filter((_, di) => checks[`${wi}-${di}`]).length;
+    const pct = Math.round((done / total) * 100);
+    const div = document.createElement('div');
+    div.className = 'week-card';
+    div.id = `week-${wi}`;
+    div.innerHTML = `
+      <div class="week-bar"><div class="week-bar-fill" style="width:${pct}%"></div></div>
+      <div class="week-header" onclick="toggleWeek(${wi})">
+        <span class="week-title">${week.title}</span>
+        <span class="week-prog">${done}/${total}</span>
+        <span class="domain-arrow">▼</span>
+      </div>
+      <div class="week-body" id="week-body-${wi}">
+        ${week.days.map((day, di) => `
+          <div class="day-item">
+            <div class="day-check ${checks[wi+'-'+di] ? 'checked' : ''}" onclick="toggleCheck(${wi},${di})"></div>
+            <div class="day-label">
+              <strong>${day.label}</strong>
+              <span>${day.desc}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    list.appendChild(div);
+  });
+  updateOverall();
+}
+
+function toggleWeek(wi) {
+  const card = document.getElementById(`week-${wi}`);
+  const body = document.getElementById(`week-body-${wi}`);
+  card.classList.toggle('open');
+  body.style.display = card.classList.contains('open') ? 'block' : 'none';
+}
+
+function toggleCheck(wi, di) {
+  const key = `${wi}-${di}`;
+  checks[key] = !checks[key];
+  localStorage.setItem('scs_checks', JSON.stringify(checks));
+  buildProgress();
+}
+
+function updateOverall() {
+  const total = weekData.reduce((s, w) => s + w.days.length, 0);
+  const done = Object.values(checks).filter(Boolean).length;
+  const pct = Math.round((done / total) * 100);
+  document.getElementById('overallPct').textContent = pct + '%';
+  document.getElementById('overallBar').style.width = pct + '%';
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('statLeft').textContent = total - done;
+  // simple streak: count consecutive recent days
+  document.getElementById('statStreak').textContent = calcStreak();
+}
+
+function calcStreak() {
+  let streak = 0;
+  for (let wi = weekData.length - 1; wi >= 0; wi--) {
+    for (let di = weekData[wi].days.length - 1; di >= 0; di--) {
+      if (checks[`${wi}-${di}`]) streak++;
+      else return streak;
+    }
+  }
+  return streak;
+}
+
+buildProgress();
+
+// ============================================================ TIMER
+let timerSeconds = 10200;
+let timerMax = 10200;
+let timerLabel = 'Full Exam (170 min)';
+let timerRunning = false;
+let timerInterval = null;
+
+function setTimer(seconds, label) {
+  timerSeconds = seconds;
+  timerMax = seconds;
+  timerLabel = label;
+  timerRunning = false;
+  clearInterval(timerInterval);
+  document.getElementById('timerStartBtn').textContent = '▶ Start';
+  document.getElementById('timerStartBtn').className = 'timer-btn primary';
+  updateTimerDisplay();
+  document.getElementById('timerLabel').textContent = label;
+}
+
+function updateTimerDisplay() {
+  const h = Math.floor(timerSeconds / 3600);
+  const m = Math.floor((timerSeconds % 3600) / 60);
+  const s = timerSeconds % 60;
+  const disp = document.getElementById('timerDisplay');
+  disp.textContent = h > 0
+    ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+    : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const pct = timerSeconds / timerMax;
+  disp.className = 'timer-display' + (pct < 0.1 ? ' danger' : pct < 0.25 ? ' warning' : '');
+}
+
+function timerStartStop() {
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timerStartBtn').textContent = '▶ Resume';
+    document.getElementById('timerStartBtn').className = 'timer-btn primary';
+  } else {
+    if (timerSeconds <= 0) timerSeconds = timerMax;
+    timerRunning = true;
+    document.getElementById('timerStartBtn').textContent = '⏸ Pause';
+    document.getElementById('timerStartBtn').className = 'timer-btn danger';
+    timerInterval = setInterval(() => {
+      timerSeconds--;
+      updateTimerDisplay();
+      if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        document.getElementById('timerStartBtn').textContent = '▶ Start';
+        document.getElementById('timerStartBtn').className = 'timer-btn primary';
+        document.getElementById('timerDisplay').textContent = 'TIME!';
+        document.getElementById('timerDisplay').className = 'timer-display danger';
+        if ('vibrate' in navigator) navigator.vibrate([500,200,500]);
+      }
+    }, 1000);
+  }
+}
+
+function timerReset() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerSeconds = timerMax;
+  document.getElementById('timerStartBtn').textContent = '▶ Start';
+  document.getElementById('timerStartBtn').className = 'timer-btn primary';
+  document.getElementById('timerLabel').textContent = timerLabel;
+  updateTimerDisplay();
+}
+
+updateTimerDisplay();
+
+// ============================================================ SCORES
+let scores = JSON.parse(localStorage.getItem('scs_scores') || '[]');
+
+function addScore() {
+  const val = parseInt(document.getElementById('scoreInput').value);
+  const label = document.getElementById('scoreLabel').value || `Mock #${scores.length + 1}`;
+  if (!val || val < 100 || val > 1000) return;
+  scores.push({ val, label, date: new Date().toLocaleDateString() });
+  localStorage.setItem('scs_scores', JSON.stringify(scores));
+  document.getElementById('scoreInput').value = '';
+  document.getElementById('scoreLabel').value = '';
+  renderScores();
+}
+
+function removeScore(i) {
+  scores.splice(i, 1);
+  localStorage.setItem('scs_scores', JSON.stringify(scores));
+  renderScores();
+}
+
+function renderScores() {
+  const list = document.getElementById('scoreList');
+  if (!scores.length) { list.innerHTML = '<div class="empty-state">No scores logged yet.</div>'; return; }
+  list.innerHTML = scores.map((s, i) => {
+    const pct = ((s.val - 100) / 900) * 100;
+    const color = s.val >= 800 ? 'var(--green)' : s.val >= 750 ? 'var(--accent)' : 'var(--red)';
+    return `<div class="score-entry">
+      <span style="font-size:12px;color:var(--muted);width:90px;flex-shrink:0">${s.date}<br>${s.label}</span>
+      <div class="score-bar-wrap"><div class="score-bar" style="width:${pct}%;background:${color}"></div></div>
+      <span class="score-num" style="color:${color}">${s.val}</span>
+      ${s.val >= 750 ? '<span style="color:var(--green);font-size:18px">✓</span>' : '<span style="color:var(--red);font-size:16px">✗</span>'}
+      <span class="score-del" onclick="removeScore(${i})">×</span>
+    </div>`;
+  }).join('');
+}
+
+renderScores();
+
+// ============================================================ GAME ENGINE
+const gameHiScores = JSON.parse(localStorage.getItem('scs_hiscores') || '{}');
+
+// ---- BLITZ QUESTION BANK (60 questions) ----
+const blitzQ = [
+  {d:'D1',q:'Which service detects threats by analyzing CloudTrail, VPC Flow Logs, and DNS logs automatically?',opts:['Amazon Inspector','Amazon GuardDuty','AWS Security Hub','Amazon Detective'],ans:1},
+  {d:'D1',q:'CloudTrail S3 object-level logging (GetObject, PutObject) is:',opts:['On by default','Off — must enable data events','Only available with Shield Advanced','Only in us-east-1'],ans:1},
+  {d:'D1',q:'You need to investigate WHY a GuardDuty finding fired — timelines, related IPs, user behavior. Which service?',opts:['CloudTrail Lake','AWS Security Hub','Amazon Detective','AWS Config'],ans:2},
+  {d:'D1',q:'Which Security Hub finding format do all integrated services use?',opts:['JSON-LD','ASFF (Amazon Security Finding Format)','STIX/TAXII','CEF'],ans:1},
+  {d:'D1',q:'GuardDuty EKS audit log protection is:',opts:['Enabled automatically','Must be explicitly enabled','Only available in GovCloud','Included with Shield Standard'],ans:1},
+  {d:'D1',q:'VPC Flow Logs capture:',opts:['Full packet payloads','DNS query content','Network traffic metadata only (IPs, ports, bytes)','HTTP request headers'],ans:2},
+  {d:'D1',q:'Which service detects anomalous API call rate spikes by comparing to a historical baseline?',opts:['GuardDuty','CloudWatch anomaly detection','CloudTrail Insights','Security Hub'],ans:2},
+  {d:'D1',q:'How do you capture all DNS queries from EC2 instances in a VPC?',opts:['VPC Flow Logs filtered on port 53','Route 53 Resolver query logging','CloudTrail DNS events','GuardDuty DNS alerts'],ans:1},
+  {d:'D1',q:'Security Hub aggregates findings across accounts using which account type?',opts:['Root account','Billing account','Delegated administrator account','Network account'],ans:2},
+  {d:'D1',q:'Which GuardDuty finding means an EC2 instance is making outbound connections to the Tor network?',opts:['Recon:EC2/PortProbeUnprotectedPort','UnauthorizedAccess:EC2/TorClient','Backdoor:EC2/DenialOfService','CryptoCurrency:EC2/BitcoinTool'],ans:1},
+  {d:'D2',q:'An IAM access key is exposed on GitHub. What is the FIRST action?',opts:['Rotate the key (create new, delete old)','Disable the key immediately','Delete the IAM user','Contact AWS Support'],ans:1},
+  {d:'D2',q:'How do you revoke ALL active sessions for a compromised IAM role without deleting it?',opts:['Change the trust policy','Attach a deny policy with aws:TokenIssueTime condition','Disable the role','Delete all policies from the role'],ans:1},
+  {d:'D2',q:'For forensic analysis of a compromised EC2, you should mount the EBS evidence volume:',opts:['Read-write so you can fix it','Read-only on an isolated forensic instance','Directly on the compromised instance','As the root volume of a new instance'],ans:1},
+  {d:'D2',q:'The canonical GuardDuty automated remediation pattern is:',opts:['CloudWatch → SNS → Lambda','GuardDuty → EventBridge → Lambda','Config → Systems Manager → SNS','GuardDuty → S3 → Athena → Lambda'],ans:1},
+  {d:'D2',q:'Which service is BEST for complex multi-step IR workflows with parallel execution and retry logic?',opts:['AWS Lambda','Amazon EventBridge','AWS Step Functions','SSM Automation'],ans:2},
+  {d:'D2',q:'SSM Automation documents are used for:',opts:['Detecting security threats','Standardized, repeatable IR runbooks','Encrypting EC2 volumes','Generating compliance reports'],ans:1},
+  {d:'D2',q:'To preserve forensic chain of custody for an EBS snapshot, you should:',opts:['Tag it with the incident ID','Calculate a cryptographic hash (SHA-256) and store in a tamper-evident location','Restrict access with an IAM resource policy','Take multiple snapshots at different times'],ans:1},
+  {d:'D2',q:'An attacker created new IAM users and access keys before being caught. After revoking original credentials, what else MUST you do?',opts:['Reset all IAM passwords','Find and disable/delete the attacker-created IAM users and access keys','Terminate all EC2 instances','Enable GuardDuty'],ans:1},
+  {d:'D2',q:'What is the recommended isolation step when an EC2 instance is compromised?',opts:['Terminate the instance immediately','Replace its security group with a quarantine SG (no inbound/outbound)','Stop the instance','Remove its IAM instance profile'],ans:1},
+  {d:'D3',q:'Security Groups are:',opts:['Stateless, subnet-level, allow+deny','Stateful, ENI-level, allow only','Stateless, ENI-level, allow only','Stateful, subnet-level, allow+deny'],ans:1},
+  {d:'D3',q:'NACLs are:',opts:['Stateful, ENI-level','Stateless, subnet-level, allow+deny, evaluated lowest-number-first','Stateful, subnet-level, allow only','Stateless, VPC-level'],ans:1},
+  {d:'D3',q:'Which VPC endpoint type supports ONLY S3 and DynamoDB and is FREE?',opts:['Interface endpoint','Gateway Load Balancer endpoint','Gateway endpoint','PrivateLink endpoint'],ans:2},
+  {d:'D3',q:'AWS WAF CANNOT be attached to:',opts:['CloudFront','ALB','EC2 instances directly','API Gateway'],ans:2},
+  {d:'D3',q:'To prevent SSRF attacks on the EC2 instance metadata service, you should:',opts:['Block port 80 on the security group','Enforce IMDSv2 (HttpTokens=required)','Disable the IAM instance profile','Use NACLs to block 169.254.169.254'],ans:1},
+  {d:'D3',q:'Systems Manager Session Manager vs bastion host — what does Session Manager NOT require?',opts:['IAM permissions','An internet connection','Open inbound ports or SSH key pairs','CloudWatch logging'],ans:2},
+  {d:'D3',q:'Shield Advanced adds over Shield Standard:',opts:['Layer 3/4 DDoS protection','SRT access, L7 protection with WAF, cost protection, enhanced detection','Free WAF rules','Unlimited CloudFront capacity'],ans:1},
+  {d:'D3',q:'Which service provides deep packet inspection inside a VPC using Suricata-compatible rules?',opts:['AWS WAF','VPC NACLs','AWS Network Firewall','Amazon GuardDuty'],ans:2},
+  {d:'D3',q:'AWS Firewall Manager centrally manages which services across an org? (best answer)',opts:['Only WAF','WAF, Shield, Security Groups, Network Firewall','Only Shield Advanced','Only Security Groups'],ans:1},
+  {d:'D3',q:'For EC2 containers on ECS/Fargate, each task should have:',opts:['The cluster IAM role','Its own task IAM role with least-privilege permissions','AdministratorAccess for flexibility','No IAM role — use STS directly'],ans:1},
+  {d:'D3',q:'VPC Traffic Mirroring is used to:',opts:['Monitor VPC Flow Log metadata','Copy actual network packets to an IDS/IPS for deep inspection','Mirror CloudTrail logs to a secondary region','Replicate security group rules across VPCs'],ans:1},
+  {d:'D4',q:'What ALWAYS wins in IAM policy evaluation?',opts:['Resource-based policy','AdministratorAccess','Explicit Deny anywhere in any applicable policy','SCP'],ans:2},
+  {d:'D4',q:'SCPs can:',opts:['Grant AND restrict permissions','Only restrict permissions, never grant','Grant permissions when attached to root OU','Override explicit denies in IAM policies'],ans:1},
+  {d:'D4',q:'Do SCPs apply to the management account?',opts:['Yes, always','Yes, but only for billing','No, never','Only if a guardrail is enabled'],ans:2},
+  {d:'D4',q:'A permission boundary on an IAM role with AdministratorAccess that only allows S3:* means the role can:',opts:['Do everything — AdministratorAccess wins','Only do S3 actions — the boundary is the effective limit','Do everything except delete S3','Do nothing — conflicting policies cancel out'],ans:1},
+  {d:'D4',q:'Cognito User Pool returns:',opts:['AWS temporary credentials','JWT tokens (ID, access, refresh)','STS session tokens','IAM access keys'],ans:1},
+  {d:'D4',q:'Cognito Identity Pool returns:',opts:['JWT tokens','SAML assertions','Temporary AWS credentials via STS','IAM long-term access keys'],ans:2},
+  {d:'D4',q:'ABAC uses what as attributes in IAM conditions?',opts:['Resource ARNs','AWS account IDs','Tags on principals and resources','IAM group memberships'],ans:2},
+  {d:'D4',q:'IAM Access Analyzer detects resources shared with whom?',opts:['All IAM users in the account','Principals OUTSIDE the defined zone of trust','Service-linked roles only','Principals without MFA'],ans:1},
+  {d:'D4',q:'For cross-account S3 bucket access, what must BOTH allow?',opts:['Only the bucket policy in the target account','Only the IAM policy in the source account','Both: bucket policy in target AND IAM policy in source account','Only the SCP of the source account'],ans:2},
+  {d:'D4',q:'IAM Identity Center (SSO) is designed for:',opts:['Application end-user authentication','Mobile app authorization','Workforce/employee access to multiple AWS accounts','IoT device authentication'],ans:2},
+  {d:'D4',q:'To force MFA for all API calls (not just console login), you attach a policy that:',opts:['Requires MFA in the password policy','Denies all actions when aws:MultiFactorAuthPresent is false','Enables virtual MFA on the account','Blocks non-MFA principals via SCP'],ans:1},
+  {d:'D4',q:'Which condition key restricts an IAM role so only EC2 service (not IAM users) can assume it?',opts:['aws:PrincipalType = Service','Set trust policy Principal to ec2.amazonaws.com only','iam:PassRole condition','aws:SourceService condition'],ans:1},
+  {d:'D4',q:'SCPs do NOT affect:',opts:['IAM users in member accounts','IAM roles in member accounts','Service-linked roles','Root users in member accounts'],ans:2},
+  {d:'D5',q:'In envelope encryption, what is encrypted by KMS?',opts:['The data itself','The plaintext data key','The ciphertext','The S3 object metadata'],ans:1},
+  {d:'D5',q:'CloudHSM vs KMS — CloudHSM is FIPS 140-2 Level:',opts:['Level 1','Level 2','Level 3','Level 4'],ans:2},
+  {d:'D5',q:'S3 Bucket Keys reduce costs by:',opts:['Compressing objects before encryption','Generating a bucket-level data key to reduce per-object KMS API calls by up to 99%','Caching decrypted objects in CloudFront','Using SSE-S3 instead of SSE-KMS'],ans:1},
+  {d:'D5',q:'Which S3 encryption method gives you the most audit visibility (CloudTrail logs every encrypt/decrypt)?',opts:['SSE-S3','SSE-C','SSE-KMS with customer managed CMK','Client-side encryption'],ans:2},
+  {d:'D5',q:'ACM public certificates CANNOT be deployed to:',opts:['CloudFront','ALB','EC2 directly','API Gateway'],ans:2},
+  {d:'D5',q:'KMS key deletion minimum waiting period is:',opts:['1 day','7 days','30 days','90 days'],ans:1},
+  {d:'D5',q:'Secrets Manager vs Parameter Store — which has NATIVE automatic rotation?',opts:['Parameter Store','Both equally','Secrets Manager','Neither — rotation is always custom'],ans:2},
+  {d:'D5',q:'The kms:ViaService condition key restricts a KMS key to:',opts:['A specific AWS account only','Requests originating from a specific AWS service on behalf of a principal','A specific IAM role only','A specific VPC endpoint'],ans:1},
+  {d:'D5',q:'Which service discovers and classifies sensitive data (PII, credit cards) in S3?',opts:['Amazon GuardDuty','AWS Config','Amazon Macie','Amazon Inspector'],ans:2},
+  {d:'D5',q:'To reject S3 uploads without server-side encryption, you add a bucket policy with:',opts:['Allow condition on encryption header','Deny when aws:SecureTransport is false','Deny when s3:x-amz-server-side-encryption header is missing','S3 Block Public Access setting'],ans:2},
+  {d:'D5',q:'ACM Private CA is used for:',opts:['Free public TLS certificates','Internal PKI, private certs, mTLS between services','Storing application secrets','Signing S3 presigned URLs'],ans:1},
+  {d:'D6',q:'Which account should NEVER host production workloads?',opts:['Security tooling account','Log archive account','AWS Organizations management account','Network hub account'],ans:2},
+  {d:'D6',q:'Control Tower preventive guardrails are implemented as:',opts:['AWS Config rules','Lambda functions','SCPs (Service Control Policies)','CloudFormation StackSets'],ans:2},
+  {d:'D6',q:'Control Tower detective guardrails are implemented as:',opts:['SCPs','AWS Config rules','IAM permission boundaries','CloudWatch alarms'],ans:1},
+  {d:'D6',q:'To download AWS\'s own compliance reports (SOC 2, PCI-DSS AOC) for an auditor, you use:',opts:['AWS Audit Manager','Amazon Inspector','AWS Artifact','AWS Security Hub'],ans:2},
+  {d:'D6',q:'To auto-collect evidence of YOUR workload compliance for frameworks like HIPAA or PCI-DSS, you use:',opts:['AWS Artifact','AWS Config only','AWS Audit Manager','CloudTrail Lake'],ans:2},
+  {d:'D6',q:'An SCP at the root OU Denies ec2:TerminateInstances. A user in a member account with AdministratorAccess tries to terminate an instance. Result?',opts:['Allowed — AdministratorAccess overrides SCPs','Denied — SCPs apply to all principals in member accounts','Allowed — the action is allowed if it\'s read-only','Denied — but only if MFA is not enabled'],ans:1},
+  {d:'D6',q:'Amazon Bedrock guardrails can do which of the following?',opts:['Prevent DDoS attacks on Bedrock endpoints','Define denied topics and redact PII in model inputs/outputs','Replace IAM policies for Bedrock access','Encrypt model weights with KMS'],ans:1},
+  {d:'D6',q:'When a new account joins an AWS Organization, GuardDuty is automatically enabled IF:',opts:['GuardDuty is enabled in any member account','Auto-enable is configured in the delegated administrator\'s GuardDuty org settings','The account is in the root OU','Shield Advanced is subscribed'],ans:1},
+];
+
+// ---- POLICY JUDGE QUESTION BANK (20 scenarios) ----
+const judgeQ = [
+  {d:'IAM Evaluation',scenario:`An IAM user has <code>AdministratorAccess</code> attached. There is also an SCP on the account's OU that explicitly <code>Denies ec2:RunInstances</code>. The user tries to launch an EC2 instance.`,ans:'DENY',explain:'The SCP Deny overrides AdministratorAccess. SCPs set the maximum permissions — no IAM policy can override an SCP Deny in a member account.'},
+  {d:'Cross-Account',scenario:`Account A user wants to read objects from an S3 bucket in Account B. Account B\'s bucket policy grants access to Account A\'s root ARN. Account A user has <code>AdministratorAccess</code>.`,ans:'ALLOW',explain:'Bucket policy grants Account A\'s root (which represents all Account A principals). Account A user has Admin so their IAM policy allows S3. Both sides allow → ALLOW.'},
+  {d:'Permission Boundary',scenario:`An IAM role has <code>AdministratorAccess</code> policy. A permission boundary is attached that only allows <code>s3:*</code> and <code>ec2:Describe*</code>. The role tries to call <code>ec2:RunInstances</code>.`,ans:'DENY',explain:'Permission boundaries cap the effective permissions. The intersection of AdministratorAccess and the boundary (s3:* + ec2:Describe*) is only those allowed by the boundary. ec2:RunInstances is not in the boundary → DENY.'},
+  {d:'Session Policy',scenario:`A user assumes an IAM role with <code>AdministratorAccess</code>. They pass a session policy that only allows <code>s3:GetObject</code>. They try to call <code>s3:PutObject</code>.`,ans:'DENY',explain:'Session policies further restrict the role\'s permissions. Effective permissions = intersection of role policy AND session policy. s3:PutObject is not in the session policy → DENY.'},
+  {d:'Resource Policy (Same Account)',scenario:`An S3 bucket policy grants <code>s3:GetObject</code> to an IAM user in the SAME account. That user has NO IAM policies attached at all.`,ans:'ALLOW',explain:'For same-account access: a resource-based policy alone can grant access even without an identity policy. The bucket policy explicitly allows the user → ALLOW.'},
+  {d:'Cross-Account S3',scenario:`An S3 bucket in Account B has a policy granting <code>s3:GetObject</code> to a specific IAM user ARN in Account A. That user\'s IAM policy in Account A has NO s3 permissions.`,ans:'DENY',explain:'For cross-account: BOTH sides must allow. The bucket policy grants access, but the user\'s IAM policy in Account A does not allow s3:GetObject. Missing one side → DENY.'},
+  {d:'SCP',scenario:`An SCP at the root OU <code>Denies iam:CreateUser</code>. An administrator in the Management Account tries to create an IAM user.`,ans:'ALLOW',explain:'SCPs do NOT apply to the management account. The Deny only affects member accounts. Management account is always exempt from SCPs → ALLOW.'},
+  {d:'Explicit Deny',scenario:`A user has two policies: Policy A allows <code>s3:*</code> on all resources. Policy B explicitly Denies <code>s3:DeleteObject</code> on all resources. User tries to delete an S3 object.`,ans:'DENY',explain:'Explicit Deny always wins — it overrides any number of Allow statements. Even with s3:* allowed, the explicit Deny on s3:DeleteObject takes precedence → DENY.'},
+  {d:'MFA Condition',scenario:`A policy Denies all actions when <code>aws:MultiFactorAuthPresent</code> is <code>false</code>. An IAM user makes an API call using access keys without completing MFA.`,ans:'DENY',explain:'The programmatic API call without MFA means aws:MultiFactorAuthPresent evaluates to false. The policy Denies all actions in that case → DENY.'},
+  {d:'SCP (Service-Linked Role)',scenario:`An SCP Denies <code>guardduty:DeleteDetector</code> on all principals. A GuardDuty service-linked role tries to perform an internal operation using guardduty:DeleteDetector.`,ans:'ALLOW',explain:'SCPs do NOT apply to service-linked roles (SLRs). AWS service-linked roles are exempt from SCP restrictions → ALLOW.'},
+  {d:'VPC Endpoint Policy',scenario:`A VPC Gateway Endpoint for S3 has an endpoint policy that only allows <code>s3:GetObject</code> on bucket A. An EC2 instance through the endpoint tries to call <code>s3:PutObject</code> on bucket A. The EC2 IAM role allows all S3 actions.`,ans:'DENY',explain:'The VPC endpoint policy restricts what can be done through the endpoint. Even though the IAM role allows PutObject, the endpoint policy only allows GetObject. The most restrictive policy wins → DENY.'},
+  {d:'Trust Policy',scenario:`An IAM role\'s trust policy only allows <code>ec2.amazonaws.com</code> as the principal. An IAM user with <code>AdministratorAccess</code> (including sts:AssumeRole) tries to assume this role.`,ans:'DENY',explain:'The trust policy (resource-based policy on the role) controls WHO can assume it. It only trusts the EC2 service, not IAM users. No IAM policy can override a trust policy that doesn\'t allow the principal → DENY.'},
+  {d:'IAM Access Analyzer',scenario:`IAM Access Analyzer is enabled with the ACCOUNT as the zone of trust. An IAM role in the same account has a trust policy allowing another IAM role in the SAME account to assume it. Access Analyzer scans this.`,ans:'ALLOW',explain:'Access Analyzer only flags access from OUTSIDE the zone of trust. Same-account access is within the trust zone and does NOT generate a finding. No finding means it\'s considered allowed/safe.'},
+  {d:'Cognito',scenario:`A Cognito Identity Pool exchanges a validated Cognito User Pool JWT token for AWS credentials. The IAM role associated with authenticated users allows <code>dynamodb:GetItem</code>. The app calls <code>dynamodb:PutItem</code>.`,ans:'DENY',explain:'The IAM role only grants dynamodb:GetItem. Even though the user is authenticated, the role\'s permissions policy doesn\'t include PutItem → DENY.'},
+  {d:'SCP + IAM',scenario:`An SCP on a member account Allows only <code>s3:*</code> and <code>cloudtrail:*</code>. An IAM admin user in that account with <code>AdministratorAccess</code> tries to call <code>ec2:DescribeInstances</code>.`,ans:'DENY',explain:'The SCP only allows s3:* and cloudtrail:*. Since ec2:DescribeInstances is not in the SCP allow list, all other actions are implicitly denied at the SCP level, regardless of the IAM policy → DENY.'},
+  {d:'Resource Policy',scenario:`An SQS queue has a resource policy allowing <code>sqs:SendMessage</code> from all principals in the same AWS account (<code>aws:PrincipalAccount matches account ID</code>). An EC2 IAM role in the same account with s3-only permissions tries to send an SQS message.`,ans:'DENY',explain:'The SQS resource policy allows same-account principals. However, for same-account resource-based policies, the identity policy ALSO matters as a gate. The EC2 role only has S3 permissions and no SQS permissions → DENY.'},
+  {d:'Org SCP',scenario:`An SCP attached to the root OU uses <code>Allow: *</code> (FullAWSAccess) only. No Deny SCPs are present. An IAM user in a member account with an IAM policy allowing <code>s3:GetObject</code> tries to get an S3 object.`,ans:'ALLOW',explain:'The FullAWSAccess SCP allows all actions (it doesn\'t grant but allows the IAM policy to take effect). The IAM policy grants s3:GetObject. No denies present → ALLOW.'},
+  {d:'KMS Key Policy',scenario:`A KMS key policy grants <code>kms:Decrypt</code> to an IAM role in Account B (cross-account). Account B\'s IAM policy for the role does NOT include any KMS permissions.`,ans:'DENY',explain:'For cross-account KMS access: BOTH the key policy in Account A AND the IAM policy in Account B must allow the action. The key policy allows it, but Account B\'s IAM policy doesn\'t → DENY.'},
+  {d:'Boundary + SCP',scenario:`A member account has an SCP allowing all actions. An IAM role has AdministratorAccess. A permission boundary allows only <code>lambda:*</code>. The role tries to call <code>s3:GetObject</code>.`,ans:'DENY',explain:'The permission boundary limits effective permissions to lambda:* only. Even though SCP allows everything and AdministratorAccess allows everything, the boundary is the cap. s3:GetObject is outside the boundary → DENY.'},
+  {d:'Root User',scenario:`An SCP at the root OU Denies <code>s3:DeleteBucket</code>. The root user of a MEMBER account tries to delete an S3 bucket in that account.`,ans:'DENY',explain:'Unlike the management account, root users of MEMBER accounts ARE subject to SCPs. SCPs apply to all principals in member accounts including their root user. The SCP Deny blocks the action → DENY.'},
+];
+
+// ---- SHOWDOWN QUESTION BANK (40 questions) ----
+const showdownQ = [
+  {tag:'Pick the right service',q:'A company needs a managed service to inspect HTTP traffic for SQL injection and XSS attacks on their ALB. Minimal management overhead.',opts:['AWS Network Firewall','AWS WAF with managed rule groups','Amazon GuardDuty','VPC NACLs'],ans:1},
+  {tag:'Pick the right service',q:'You need to store RDS database credentials with automatic rotation every 30 days. Application retrieves by name at runtime.',opts:['SSM Parameter Store SecureString','AWS KMS','AWS Secrets Manager','AWS Certificate Manager'],ans:2},
+  {tag:'Pick the right service',q:'A company needs to find all S3 buckets in their org that contain Social Security Numbers and credit card numbers.',opts:['Amazon GuardDuty','Amazon Inspector','AWS Config','Amazon Macie'],ans:3},
+  {tag:'Pick the right service',q:'You need to aggregate security findings from 100 AWS accounts into a single pane of glass with compliance standard checks.',opts:['Amazon GuardDuty (master)','AWS Config aggregator','AWS Security Hub with delegated admin','Amazon Detective'],ans:2},
+  {tag:'Pick the right service',q:'EC2 instances need to call SSM, KMS, and ECR without internet access. No NAT gateway. Which endpoint type?',opts:['Gateway endpoint (free)','Interface endpoint (PrivateLink)','Transit Gateway','Direct Connect'],ans:1},
+  {tag:'Pick the right service',q:'A security analyst needs to investigate the timeline, related IPs, and user behavior behind a GuardDuty finding.',opts:['CloudTrail Lake','AWS Security Hub','Amazon Detective','Amazon CloudWatch Logs Insights'],ans:2},
+  {tag:'Pick the right service',q:'You need FIPS 140-2 Level 3 validated, dedicated hardware for cryptographic key operations.',opts:['AWS KMS with CMK','AWS KMS with AWS-managed key','AWS CloudHSM','ACM Private CA'],ans:2},
+  {tag:'Pick the right service',q:'Connect employees from an existing Active Directory to multiple AWS accounts with single sign-on, with permission sets per account.',opts:['Amazon Cognito','IAM federation','AWS IAM Identity Center (SSO)','AWS Directory Service standalone'],ans:2},
+  {tag:'Pick the right service',q:'You need to prevent creating public S3 buckets across all 50 member accounts in your org. Preventive control.',opts:['AWS Config rule','Amazon Macie','SCP with Deny on s3:PutBucketPublicAccessBlock','GuardDuty S3 Protection'],ans:2},
+  {tag:'Pick the right service',q:'A mobile app needs users to sign in with Google, then access DynamoDB with permissions scoped to their user ID.',opts:['Cognito User Pool only','IAM federation','Cognito User Pool + Cognito Identity Pool','API Gateway with Lambda authorizer only'],ans:2},
+  {tag:'Pick the right service',q:'Centrally deploy WAF rules, Shield subscriptions, and security groups across all accounts in your AWS Organization.',opts:['AWS Config','AWS Control Tower','AWS Firewall Manager','IAM Service Control Policies'],ans:2},
+  {tag:'Pick the right service',q:'Detect unusual API call patterns — like a spike in CreateUser calls — compared to a historical baseline.',opts:['CloudWatch metric filter','GuardDuty','CloudTrail Insights','Security Hub custom insight'],ans:2},
+  {tag:'Pick the right service',q:'You need shell access to a private EC2 instance with no internet access, no open ports, and a full audit trail.',opts:['Bastion host in public subnet','AWS Systems Manager Session Manager','EC2 Instance Connect','Direct VPN access'],ans:1},
+  {tag:'Pick the right service',q:'Prove to an auditor that YOUR AWS workloads meet PCI-DSS requirements with automatically collected evidence.',opts:['AWS Artifact','CloudTrail logs manually reviewed','AWS Audit Manager with PCI-DSS framework','Security Hub PCI standard'],ans:2},
+  {tag:'Pick the right service',q:'Provide an external auditor with AWS\'s own SOC 2 Type II compliance report to show AWS infrastructure is certified.',opts:['AWS Audit Manager','Security Hub','AWS Artifact','Amazon Inspector'],ans:2},
+  {tag:'Pick the right service',q:'Deep packet inspection inside a VPC for non-HTTP traffic using Suricata-compatible IPS rules.',opts:['AWS WAF','VPC NACLs','Amazon GuardDuty','AWS Network Firewall'],ans:3},
+  {tag:'Pick the right service',q:'Issue internal TLS certificates for microservices communicating over mTLS. Certificates must be exportable.',opts:['ACM public certificates','ACM Private CA','AWS KMS','AWS Secrets Manager'],ans:1},
+  {tag:'Pick the right service',q:'Monitor and alert when an EC2 instance\'s security group is changed, with near-real-time notification.',opts:['GuardDuty (config findings)','CloudTrail + CloudWatch metric filter + SNS alarm','AWS Config rule only','Amazon Inspector'],ans:1},
+  {tag:'Pick the right service',q:'Continuously record configuration changes to AWS resources and track compliance over time.',opts:['AWS CloudTrail','Amazon GuardDuty','AWS Config','AWS Audit Manager'],ans:2},
+  {tag:'Pick the right service',q:'Control Tower guardrail that BLOCKS an action before it happens (e.g., creating a public S3 bucket).',opts:['Detective guardrail (Config rule)','Proactive guardrail (CFN hook)','Preventive guardrail (SCP)','Reactive guardrail (Lambda)'],ans:2},
+  {tag:'Pick the right service',q:'An application on EC2 needs AWS credentials with permissions scoped to each individual end-user of the app.',opts:['Long-term IAM access keys per user','Cognito Identity Pool with per-user IAM role conditions','Single EC2 instance role shared by all users','IAM users created per end-user'],ans:1},
+  {tag:'Pick the right service',q:'Reduce SSE-KMS API call costs for S3 buckets with millions of objects without changing encryption.',opts:['Switch to SSE-S3','Enable S3 Bucket Keys','Enable client-side encryption','Cache decrypted data in ElastiCache'],ans:1},
+  {tag:'Pick the right service',q:'Identify IAM roles in your account that have permissions that haven\'t been used in 90 days (rightsizing).',opts:['Amazon GuardDuty','IAM Access Analyzer unused access analysis','AWS Config IAM role rule','Trusted Advisor'],ans:1},
+  {tag:'Pick the right service',q:'Enforce content safety in Amazon Bedrock — block competitor topics and redact PII from model outputs.',opts:['IAM policy conditions on bedrock:InvokeModel','Amazon Macie scanning outputs','Bedrock guardrails','VPC endpoints for Bedrock'],ans:2},
+  {tag:'Pick the right service',q:'Copy raw network packets from ENIs to a target network appliance for IDS/IPS deep inspection.',opts:['VPC Flow Logs','AWS Network Firewall','VPC Traffic Mirroring','Route 53 Resolver query logging'],ans:2},
+  {tag:'Pick the right service',q:'A Lambda function decrypts data 50,000 times per day using a KMS CMK. KMS API costs are high. Best fix?',opts:['Use AWS-managed key instead','Implement envelope encryption and cache the data key in memory','Switch to CloudHSM','Use SSE-S3 instead'],ans:1},
+  {tag:'Pick the right service',q:'Multi-account Config compliance data in one place — no custom code.',opts:['CloudTrail org trail','GuardDuty master account','AWS Config aggregator','Security Hub'],ans:2},
+  {tag:'Pick the right service',q:'S3 bucket contains objects encrypted with a KMS CMK. You accidentally schedule the CMK for deletion 4 hours ago. Data recovery?',opts:['Data is permanently lost immediately','Cancel the pending deletion — 7-30 day window, still recoverable','Contact AWS Support to reverse deletion','Restore from the KMS key backup in S3'],ans:1},
+  {tag:'Pick the right service',q:'Enforce that EC2 instances in ALL member accounts must use IMDSv2. Preventive org-wide.',opts:['AWS Config rule in each account','SCP that Denies ec2:RunInstances when HttpTokens is not required','GuardDuty EC2 protection','Systems Manager compliance scan'],ans:1},
+  {tag:'Pick the right service',q:'An automated pipeline needs to perform remediation across 30 accounts. What allows it to assume roles in each account?',opts:['Root credentials for each account','STS AssumeRole with cross-account roles deployed via StackSets','Shared IAM user with Admin in all accounts','AWS Organizations API with master account creds'],ans:1},
+  {tag:'Pick the right service',q:'Users from an on-prem AD need temporary AWS access without creating IAM users — SAML 2.0 federation.',opts:['Cognito Identity Pool','IAM Identity Center with AD Connector or SAML IdP','Create IAM users matching AD users','AWS Directory Service simple AD'],ans:1},
+  {tag:'Pick the right service',q:'Prevent all member accounts from disabling CloudTrail. One policy, org-wide.',opts:['Enable CloudTrail org trail (auto-prevents deletion)','SCP Deny on cloudtrail:StopLogging and cloudtrail:DeleteTrail at root OU','CloudWatch alarm that re-enables CloudTrail','Config rule that auto-remediates'],ans:1},
+  {tag:'Pick the right service',q:'Store private key material for TLS certificates in hardware you control (FIPS 140-2 L3), integrated with ACM.',opts:['AWS KMS with imported key material','ACM Private CA','AWS CloudHSM as KMS External Key Store','Secrets Manager with encrypted key'],ans:2},
+  {tag:'Pick the right service',q:'GuardDuty is generating noise from your internal vulnerability scanner. Suppress findings from its IP permanently.',opts:['Disable the finding type in GuardDuty settings','Add the scanner IP to GuardDuty trusted IP list','Create a Config rule exception','Whitelist in Security Hub only'],ans:1},
+  {tag:'Pick the right service',q:'Detect when an IAM role issues more than 500 API calls to ec2:DescribeInstances in 5 minutes (anomaly).',opts:['CloudTrail Insights','GuardDuty IAM finding','CloudWatch metric filter + alarm','Amazon Detective graph'],ans:2},
+  {tag:'Pick the right service',q:'A web API runs on API Gateway + Lambda. You need to block requests from specific countries.',opts:['Security Group geo-blocking','WAF with geographic match rule attached to API Gateway','Lambda code checking IP geolocation','NACLs with country CIDR blocks'],ans:1},
+  {tag:'Pick the right service',q:'New accounts joining your org should automatically get GuardDuty enabled with no manual steps.',opts:['Lambda triggered by Organizations events','Config rule in each account','GuardDuty org auto-enable setting in delegated admin account','Control Tower mandatory guardrail'],ans:2},
+  {tag:'Pick the right service',q:'Which service would you use to set up automated, multi-step workflows for incident response with branching logic and parallel steps?',opts:['Amazon EventBridge','AWS Lambda (single function)','AWS Step Functions','SSM OpsCenter'],ans:2},
+  {tag:'Pick the right service',q:'Enforce tag compliance org-wide so that resources without required tags are prevented from being created.',opts:['AWS Config tag rules','AWS Organizations tag policies (reporting only)','SCP with Deny on resource creation when required aws:RequestTag keys are absent','Resource Groups Tag Editor'],ans:2},
+  {tag:'Pick the right service',q:'An EC2 instance needs to access Secrets Manager, KMS, and S3 without any internet or NAT gateway.',opts:['Three VPC Gateway Endpoints','Three VPC Interface Endpoints (PrivateLink) for Secrets Manager and KMS, plus a Gateway Endpoint for S3','One Transit Gateway connection','Direct Connect with a private VIF'],ans:1},
+];
+
+// ---- GAME STATE ----
+let gameMode = 'blitz';
+let gScore = 0, gLives = 3, gStreak = 0, gBestStreak = 0;
+let gCorrect = 0, gWrong = 0;
+let gQIndex = 0, gQList = [], gAnswered = false;
+let gTimerInterval = null, gTimerSec = 12, gTimerMax = 12;
+
+function selectMode(mode, el) {
+  gameMode = mode;
+  document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function startGame() {
+  document.getElementById('gameLobby').style.display = 'none';
+  document.getElementById('gameResults').classList.remove('active');
+  document.getElementById('gameArena').classList.add('active');
+
+  gScore = 0; gLives = 3; gStreak = 0; gBestStreak = 0;
+  gCorrect = 0; gWrong = 0; gQIndex = 0; gAnswered = false;
+
+  if (gameMode === 'blitz') {
+    gQList = shuffle([...blitzQ]);
+    gTimerMax = 12;
+    document.getElementById('blitzArea').style.display = 'block';
+    document.getElementById('judgeArea').style.display = 'none';
+    document.getElementById('forcePowerRow').style.display = 'none';
+    document.getElementById('gqCard').className = 'game-q-card';
+  } else if (gameMode === 'judge') {
+    gQList = shuffle([...judgeQ]);
+    gTimerMax = 999;
+    document.getElementById('blitzArea').style.display = 'none';
+    document.getElementById('judgeArea').style.display = 'block';
+  } else if (gameMode === 'force') {
+    gQList = shuffle([...forceQ]);
+    gTimerMax = 20;
+    forcePowers = 3;
+    document.getElementById('blitzArea').style.display = 'block';
+    document.getElementById('judgeArea').style.display = 'none';
+    document.getElementById('forcePowerRow').style.display = 'flex';
+    document.getElementById('forcePowerBtn').disabled = false;
+    document.getElementById('forcePowerBtn').textContent = '⚡ Use the Force (3 left)';
+    document.getElementById('gqCard').className = 'force-q-card';
+  } else {
+    gQList = shuffle([...showdownQ]);
+    gTimerMax = 10;
+    document.getElementById('blitzArea').style.display = 'block';
+    document.getElementById('judgeArea').style.display = 'none';
+    document.getElementById('forcePowerRow').style.display = 'none';
+    document.getElementById('gqCard').className = 'game-q-card';
+  }
+
+  updateHUD();
+  loadQ();
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function loadQ() {
+  if (gQIndex >= gQList.length || gLives <= 0) { endGame(); return; }
+  const q = gQList[gQIndex];
+  gAnswered = false;
+
+  // reset feedback + next btn
+  ['gqFeedback','jFeedback'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.className = 'game-feedback'; el.textContent = ''; }
+  });
+  ['gqNext','jNext'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.className = 'game-next-btn';
+  });
+
+  if (gameMode === 'blitz' || gameMode === 'showdown' || gameMode === 'force') {
+    document.getElementById('gqDomain').textContent = q.lore || q.d || q.tag || '';
+    document.getElementById('gqText').textContent = q.q;
+    const optsEl = document.getElementById('gqOptions');
+    const optClass = gameMode === 'showdown' ? 'showdown-opt' : gameMode === 'force' ? 'force-opt' : 'game-opt';
+    const containerClass = gameMode === 'showdown' ? 'showdown-opts' : 'game-options';
+    optsEl.className = containerClass;
+    optsEl.innerHTML = (q.opts || []).map((o, i) =>
+      `<button class="${optClass}" onclick="blitzAnswer(${i})">${o}</button>`
+    ).join('');
+    startTimer();
+  } else {
+    document.getElementById('jDomain').textContent = q.d;
+    document.getElementById('jScenario').innerHTML = q.scenario;
+    document.getElementById('jAllow').disabled = false;
+    document.getElementById('jDeny').disabled = false;
+    document.getElementById('jAllow').className = 'judge-btn allow';
+    document.getElementById('jDeny').className = 'judge-btn deny';
+    document.getElementById('gameTimerFill').style.width = '100%';
+    document.getElementById('gameTimerFill').style.background = 'var(--green)';
+  }
+}
+
+function startTimer() {
+  clearInterval(gTimerInterval);
+  gTimerSec = gTimerMax;
+  const fill = document.getElementById('gameTimerFill');
+  fill.style.width = '100%';
+  fill.style.background = 'var(--green)';
+  if (gTimerMax >= 990) return;
+  gTimerInterval = setInterval(() => {
+    gTimerSec--;
+    const pct = (gTimerSec / gTimerMax) * 100;
+    fill.style.width = pct + '%';
+    fill.style.background = pct < 25 ? 'var(--red)' : pct < 50 ? 'var(--orange)' : 'var(--green)';
+    if (gTimerSec <= 0) {
+      clearInterval(gTimerInterval);
+      if (!gAnswered) timeOut();
+    }
+  }, 1000);
+}
+
+function timeOut() {
+  gAnswered = true;
+  gStreak = 0;
+  gLives--;
+  gWrong++;
+  const q = gQList[gQIndex];
+  const btns = document.querySelectorAll('.game-opt, .showdown-opt, .force-opt');
+  btns.forEach((b, i) => { b.disabled = true; if (i === q.ans) b.classList.add('reveal'); });
+  const msg = gameMode === 'force'
+    ? `⏱ The Force was not with you! Answer: ${q.opts[q.ans]}`
+    : `⏱ Time! Answer: ${q.opts[q.ans]}`;
+  showFeedback('gqFeedback', false, msg);
+  document.getElementById('gqNext').className = 'game-next-btn show';
+  updateHUD();
+  if (gLives <= 0) setTimeout(endGame, 1200);
+}
+
+function blitzAnswer(picked) {
+  if (gAnswered) return;
+  clearInterval(gTimerInterval);
+  gAnswered = true;
+  const q = gQList[gQIndex];
+  const correct = picked === q.ans;
+  const btns = document.querySelectorAll('.game-opt, .showdown-opt, .force-opt');
+  btns.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.ans) b.classList.add('correct');
+    else if (i === picked && !correct) b.classList.add('wrong');
+  });
+
+  if (correct) {
+    const speedBonus = Math.max(0, Math.floor((gTimerSec / gTimerMax) * 50));
+    gStreak++;
+    gBestStreak = Math.max(gBestStreak, gStreak);
+    const multiplier = Math.min(gStreak, 5);
+    const pts = (100 + speedBonus) * multiplier;
+    gScore += pts;
+    gCorrect++;
+    const forceMsg = gameMode === 'force' ? `\n${q.explain}` : '';
+    showFeedback('gqFeedback', true, `✅ +${pts}${multiplier > 1 ? ` (×${multiplier} streak!)` : ''}${forceMsg}`);
+  } else {
+    gStreak = 0;
+    gLives--;
+    gWrong++;
+    const forceMsg = gameMode === 'force' ? `\n${q.explain}` : '';
+    showFeedback('gqFeedback', false, `❌ ${q.opts[q.ans]}${forceMsg}`);
+  }
+  updateHUD();
+  document.getElementById('gqNext').className = 'game-next-btn show';
+  if (gLives <= 0) setTimeout(endGame, 1200);
+}
+
+function judgeAnswer(verdict) {
+  if (gAnswered) return;
+  gAnswered = true;
+  const q = gQList[gQIndex];
+  const correct = verdict === q.ans;
+  document.getElementById('jAllow').disabled = true;
+  document.getElementById('jDeny').disabled = true;
+
+  if (correct) {
+    gStreak++;
+    gBestStreak = Math.max(gBestStreak, gStreak);
+    const multiplier = Math.min(gStreak, 5);
+    gScore += 100 * multiplier;
+    gCorrect++;
+    const winBtn = verdict === 'ALLOW' ? 'jAllow' : 'jDeny';
+    document.getElementById(winBtn).classList.add('correct');
+    showFeedback('jFeedback', true, `✅ ${q.ans}! ${q.explain}`);
+  } else {
+    gStreak = 0;
+    gLives--;
+    gWrong++;
+    const wrongBtn = verdict === 'ALLOW' ? 'jAllow' : 'jDeny';
+    const rightBtn = verdict === 'ALLOW' ? 'jDeny' : 'jAllow';
+    document.getElementById(wrongBtn).classList.add('wrong-pick');
+    document.getElementById(rightBtn).classList.add('correct');
+    showFeedback('jFeedback', false, `❌ ${q.ans}. ${q.explain}`);
+  }
+  updateHUD();
+  document.getElementById('jNext').className = 'game-next-btn show';
+  if (gLives <= 0) setTimeout(endGame, 1400);
+}
+
+function showFeedback(id, good, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'game-feedback show ' + (good ? 'good' : 'bad');
+}
+
+function nextGameQ() {
+  gQIndex++;
+  loadQ();
+}
+
+function updateHUD() {
+  const hearts = ['','❤️','❤️❤️','❤️❤️❤️'];
+  document.getElementById('hudLives').textContent = gLives >= 0 ? (hearts[Math.max(0,gLives)] || '') : '';
+  document.getElementById('hudScore').textContent = gScore.toLocaleString();
+  document.getElementById('hudStreak').textContent = gStreak >= 2 ? `🔥×${Math.min(gStreak,5)}` : '';
+}
+
+function endGame() {
+  clearInterval(gTimerInterval);
+  document.getElementById('gameArena').classList.remove('active');
+  document.getElementById('gameResults').classList.add('active');
+  document.getElementById('rScore').textContent = gScore.toLocaleString();
+  document.getElementById('rCorrect').textContent = gCorrect;
+  document.getElementById('rWrong').textContent = gWrong;
+  document.getElementById('rBestStreak').textContent = gBestStreak;
+
+  const hiKey = 'hi_' + gameMode;
+  const oldHi = gameHiScores[hiKey] || 0;
+  const isNew = gScore > oldHi;
+  if (isNew) { gameHiScores[hiKey] = gScore; localStorage.setItem('scs_hiscores', JSON.stringify(gameHiScores)); }
+  document.getElementById('rNewHi').style.display = isNew ? 'block' : 'none';
+
+  const total = gCorrect + gWrong;
+  const pct = total ? Math.round((gCorrect / total) * 100) : 0;
+  const msgs = [
+    [90, '🏆 Jedi Master!', 'You\'re ready to sit the exam. Confidence is high.'],
+    [75, '⚔️ Padawan Rising', 'Strong performance. Review your misses and you\'ll be exam-ready.'],
+    [60, '🌌 Still Learning', 'Good foundation. Hit the Guide and Flashcards for the gaps.'],
+    [0,  '💫 Keep Going', 'Every wrong answer is a lesson. Study, retry, level up.'],
+  ];
+  const [, msg, sub] = msgs.find(([threshold]) => pct >= threshold);
+  document.getElementById('rMsg').textContent = msg;
+  document.getElementById('rSub').textContent = sub;
+
+  renderHiScores();
+}
+
+function backToLobby() {
+  clearInterval(gTimerInterval);
+  document.getElementById('gameArena').classList.remove('active');
+  document.getElementById('gameResults').classList.remove('active');
+  document.getElementById('gameLobby').style.display = 'block';
+}
+
+// ---- STAR WARS FORCE TRIAL QUESTION BANK (25 questions) ----
+const forceQ = [
+  {lore:'🌌 The Kessel Run · IAM Credentials',q:'Han Solo accidentally commits his AWS access keys to a public GitHub repo — visible to the entire galaxy for 3 standard hours. What is the FIRST action Leia orders?',opts:['Rotate the key (create new, delete old)','Disable the compromised access key immediately','Enable GuardDuty to monitor for unauthorized use','Contact AWS Support for emergency key lockout'],ans:1,explain:'Disable first — rotation creates a NEW key but the old one still works until deleted. Disabling halts access immediately while preserving the key for forensic investigation.'},
+  {lore:'⚔️ Order 66 · Incident Response',q:'Darth Vader has compromised an IAM role used by the Rebel Alliance. Active sessions are running across the galaxy. Without destroying the role, how does Obi-Wan immediately invalidate ALL outstanding sessions?',opts:['Delete the IAM role and recreate it','Change the trust policy to deny all','Attach an inline deny policy with condition aws:TokenIssueTime less than current time','Rotate the role\'s access key'],ans:2,explain:'The aws:TokenIssueTime condition denies any request using a token issued before the specified time — instantly killing all active sessions without touching the role itself.'},
+  {lore:'🏰 Death Star · Infrastructure',q:'Grand Moff Tarkin demands EC2 instance access with NO open ports, NO SSH keys, and a full audit trail — "as secure as the Death Star\'s reactor core." Which AWS service does he implement?',opts:['A bastion host in the public subnet','EC2 Instance Connect via the internet','AWS Systems Manager Session Manager','Direct Connect with a private VIF'],ans:2,explain:'Session Manager provides shell access with zero open inbound ports, no key pairs, IAM-controlled access, and logs every session to CloudWatch and S3.'},
+  {lore:'🌠 Galactic Senate · SCPs',q:'Emperor Palpatine wants NO planet (member account) in the Empire to ever disable CloudTrail — one policy, enforced across the entire galaxy. What is his most powerful tool?',opts:['An IAM policy applied to all users in each account','An SCP at the root OU denying cloudtrail:StopLogging and cloudtrail:DeleteTrail','Enabling CloudTrail org trail which prevents deletion automatically','Config rule with auto-remediation in each account'],ans:1,explain:'An SCP with Deny on cloudtrail:StopLogging and cloudtrail:DeleteTrail applies to ALL principals in ALL member accounts and cannot be bypassed by any IAM policy, including AdministratorAccess.'},
+  {lore:'🤖 R2-D2 · KMS Encryption',q:'R2-D2 encrypts the Death Star plans using AWS KMS. The Rebel Alliance processes them 50,000 times per day causing massive KMS API costs. The encryption must remain SSE-KMS. What does Admiral Ackbar recommend?',opts:['Switch to SSE-S3 to avoid KMS costs','Enable S3 Bucket Keys — generates a bucket-level data key, reducing KMS calls by up to 99%','Cache decrypted data in ElastiCache','Use CloudFront to serve cached content'],ans:1,explain:'S3 Bucket Keys add a short-lived bucket-level data key layer, dramatically reducing direct KMS GenerateDataKey calls per object while keeping SSE-KMS encryption fully intact.'},
+  {lore:'🛸 Mos Eisley · Cross-Account',q:'"You will never find a more wretched hive of scum and villainy." Obi-Wan needs to grant the Mos Eisley Cantina\'s AWS account access to a specific Rebel S3 bucket — without creating IAM users. What is the correct approach?',opts:['Share long-term IAM access keys with the Cantina owner','Add the Cantina account to the Rebel AWS Organization','Create a cross-account IAM role in the Rebel account with a trust policy allowing the Cantina account','Use AWS RAM to share the S3 bucket directly'],ans:2,explain:'Cross-account IAM roles are the correct pattern. The role\'s trust policy allows the external account to assume it via STS, providing temporary credentials with no long-term credential sharing.'},
+  {lore:'🔮 The Force · IAM Evaluation',q:'A Jedi Padawan has AdministratorAccess. A permission boundary allows only s3:* and ec2:Describe*. Master Yoda observes: "Try to launch an EC2 instance, the Padawan does." What is the verdict?',opts:['Allowed — AdministratorAccess overrides boundaries','Denied — the permission boundary caps effective permissions to its allowed set','Allowed — ec2:RunInstances is implied by ec2:Describe*','Denied — only Masters can launch EC2 instances'],ans:1,explain:'Permission boundaries define the MAXIMUM permissions. Effective permissions = intersection of identity policy AND boundary. ec2:RunInstances is not in the boundary, so it\'s denied even with AdministratorAccess.'},
+  {lore:'🌑 Dark Side · Explicit Deny',q:'A Sith Lord attaches two policies to his IAM user: Policy A allows s3:* on all resources. Policy B explicitly Denies s3:DeleteObject. He tries to delete a critical holocron from S3.',opts:['Allowed — s3:* includes DeleteObject and overrides the deny','Denied — explicit Deny always wins regardless of any Allow','Depends on which policy was attached first','Allowed — Sith Lords are exempt from IAM restrictions'],ans:1,explain:'An explicit Deny ALWAYS wins in IAM policy evaluation. It overrides any number of Allow statements from any policy type. This is the fundamental rule of IAM.'},
+  {lore:'🚀 Hyperspace · VPC Endpoints',q:'Rebel soldiers (EC2 instances) on Hoth need to access S3 battle plans without routing through the open internet — the Empire monitors all hyperspace lanes. Which solution is private AND free?',opts:['NAT Gateway in a public subnet','VPC Interface Endpoint (PrivateLink) for S3','VPC Gateway Endpoint for S3','Site-to-Site VPN to AWS headquarters'],ans:2,explain:'S3 and DynamoDB are the ONLY services that support Gateway Endpoints, which are completely free and keep all traffic within the AWS network via route table entries.'},
+  {lore:'👁️ The Emperor · GuardDuty',q:'The Empire\'s security droid detects a GuardDuty finding: "CryptoCurrency:EC2/BitcoinTool.B" on a Rebel base server. Palpatine demands fully automated isolation. What is the canonical architecture?',opts:['CloudWatch Alarm → SNS → email the ops team','GuardDuty → EventBridge rule → Lambda → replace instance security group with quarantine SG','Config rule → Systems Manager Automation → terminate instance','GuardDuty → S3 export → Athena query → Lambda'],ans:1,explain:'GuardDuty publishes findings to EventBridge. An EventBridge rule matches the finding type/severity and triggers Lambda, which uses the EC2 API to swap the security group to a quarantine group with no inbound or outbound rules.'},
+  {lore:'🧪 Jedi Archives · Data Protection',q:'The Jedi Archives store classified scrolls in S3 using SSE-KMS. Master Windu orders that the KMS key may ONLY be used by the S3 service — no direct API calls from any Jedi or droid. Which key policy condition enforces this?',opts:['kms:CallerAccount with the Jedi account ID','aws:SourceService = s3.amazonaws.com','kms:ViaService = s3.us-east-1.amazonaws.com','kms:GrantIsForAWSResource'],ans:2,explain:'kms:ViaService restricts key usage to requests originating FROM a specific AWS service on behalf of a principal. Setting it to s3.us-east-1.amazonaws.com means only S3 (not direct SDK calls) can use the key.'},
+  {lore:'🏛️ Coruscant · CloudHSM',q:'The Galactic Senate\'s compliance droid demands FIPS 140-2 Level 3 validated cryptographic hardware — dedicated, single-tenant, managed by the Senate itself. What does Supreme Chancellor order procured?',opts:['AWS KMS with a customer managed CMK','AWS KMS with imported key material','AWS CloudHSM','ACM Private CA with RSA-4096'],ans:2,explain:'CloudHSM provides dedicated, single-tenant HSMs validated at FIPS 140-2 Level 3. KMS uses shared multi-tenant HSMs validated at Level 2. Level 3 always means CloudHSM on the exam.'},
+  {lore:'🌊 Mon Calamari · DDoS',q:'"It\'s a trap!" — Admiral Ackbar\'s ALB is being hit with 50 million HTTP flood requests (Layer 7 DDoS). Shield Standard is enabled. What additional action neutralizes the attack?',opts:['Add more EC2 instances to the target group to absorb traffic','Enable AWS Shield Advanced and engage the Shield Response Team (SRT)','Block all inbound traffic with NACLs','Enable CloudFront with default caching TTL'],ans:1,explain:'Layer 7 DDoS requires Shield Advanced + WAF. Shield Advanced gives access to the SRT who can write WAF rules in real-time, plus you get enhanced detection and DDoS cost protection.'},
+  {lore:'🤝 Cloud City · GuardDuty Orgs',q:'Lando Calrissian runs Cloud City as an AWS Organization with 30 accounts. He wants every NEW account that joins to automatically have GuardDuty enabled — zero manual steps.',opts:['A Lambda triggered by Organizations account-creation events','An AWS Config rule deployed via StackSets to each account','GuardDuty auto-enable configured in the delegated administrator account org settings','An SCP that enforces GuardDuty must be enabled'],ans:2,explain:'GuardDuty\'s Organizations integration includes an auto-enable setting. When configured in the delegated admin account, every new account joining automatically gets GuardDuty enabled per the configured protection plans.'},
+  {lore:'🔑 Bespin · Secrets Management',q:'The Empire stores TIE fighter pilot credentials in AWS. Darth Vader demands credentials auto-rotate every 30 days and pilots retrieve them by name at runtime — NEVER hardcoded in source code.',opts:['SSM Parameter Store with a manual rotation Lambda','AWS Secrets Manager with automatic rotation enabled','A KMS CMK with rotation policy set to 30 days','S3 object with presigned URL regenerated every 30 days'],ans:1,explain:'Secrets Manager is purpose-built for this: native auto-rotation for RDS and custom services via Lambda, secret retrieved by name via API (no hardcoded values), KMS encryption, and full CloudTrail audit trail.'},
+  {lore:'📡 Rebel Alliance · Macie',q:'Senator Jar Jar Binks accidentally shared an S3 bucket. The Rebel Alliance needs to find ALL buckets across 50 accounts containing Gungan personal identification data (PII). Which service handles this?',opts:['Amazon GuardDuty with S3 Protection','AWS Config with S3 bucket rules','Amazon Inspector scanning S3','Amazon Macie with organization-wide data discovery'],ans:3,explain:'Macie is purpose-built for sensitive data discovery in S3. It uses ML to find PII, credentials, financial data, and more. GuardDuty detects threats/anomalies but doesn\'t classify data content.'},
+  {lore:'⚡ Sith Lightning · WAF',q:'The Sith use SQL injection attacks through the Death Star\'s HTTP interface to steal Rebel fleet coordinates. The Empire wants managed protection with minimal configuration effort.',opts:['VPC NACLs with SQL injection pattern rules','AWS Network Firewall with Suricata SQLi signatures','AWS WAF with the AWS Managed Rules SQL database rule group','Amazon GuardDuty with web ACL integration'],ans:2,explain:'AWS WAF with AWS Managed Rule Groups (specifically the SQL database rule group) provides managed, automatically updated SQLi and XSS protection. You attach it to the ALB/CloudFront with no custom rule writing required.'},
+  {lore:'🧬 Midi-chlorians · ABAC',q:'The Jedi Order implements ABAC. Jedi with PrincipalTag Team=Council should access ONLY resources tagged Team=Council. Which IAM condition creates this dynamic, self-scaling policy?',opts:['{StringEquals: {ec2:ResourceTag/Team: Council}} — hardcoded value','{StringEquals: {aws:ResourceTag/Team: "${aws:PrincipalTag/Team}"}} — dynamic match','{StringEquals: {aws:PrincipalTag/Team: Council}} — checks principal only','{ArnLike: {aws:PrincipalArn: arn:aws:iam::*:role/Council}}'],ans:1,explain:'The key is ${aws:PrincipalTag/Team} — a policy variable that resolves to the REQUESTING PRINCIPAL\'S tag value at evaluation time. This means one policy handles all teams dynamically without hardcoding any team names.'},
+  {lore:'🌺 Naboo · Cognito',q:'Queen Amidala\'s Royal Holonet app uses Cognito. Guards (users) sign in with their credentials, then need temporary AWS credentials to query their own Royal Guard DynamoDB records. Which Cognito component issues the AWS credentials?',opts:['Cognito User Pool — it returns JWT tokens with embedded AWS creds','Cognito Identity Pool — it exchanges JWT tokens for STS temporary credentials','Cognito Sync — it federates identities across galaxies','Cognito User Group — it assigns IAM roles directly'],ans:1,explain:'Cognito User Pool = authentication → JWT tokens. Cognito Identity Pool = authorization → exchanges JWT for temporary AWS credentials via STS. They work together but the Identity Pool is what calls STS.'},
+  {lore:'🕵️ Bothan Spies · Forensics',q:'Many Bothans died to steal the Death Star plans stored on a compromised EC2 instance. The Rebel forensics team needs to analyze the root volume without contaminating the original evidence.',opts:['Connect via Session Manager and copy files to S3','Create an AMI and launch a new instance for analysis','Create an EBS snapshot, restore to a new volume, mount it READ-ONLY on an isolated forensic instance','Enable EC2 detailed monitoring and review CloudWatch logs'],ans:2,explain:'Forensically sound process: EBS snapshot (point-in-time copy) → new volume → mount read-only on isolated forensic instance. Read-only mounting is critical — any write to the evidence volume breaks chain of custody.'},
+  {lore:'🏗️ Control Tower · Governance',q:'Queen Amidala\'s Control Tower on Naboo needs a guardrail that BLOCKS member accounts from creating public S3 buckets — a hard stop, not just an alert. What guardrail type achieves this?',opts:['Detective guardrail — Config rule alerts on violations','Proactive guardrail — CloudFormation hook checks before resource creation','Preventive guardrail — SCP blocks the action entirely','Reactive guardrail — Lambda auto-remediates after creation'],ans:2,explain:'Preventive guardrails are implemented as SCPs and BLOCK the action before it happens. Detective guardrails (Config rules) only alert AFTER a violation. For a hard stop, always choose preventive (SCP).'},
+  {lore:'🔭 Jedi Temple · Access Analyzer',q:'IAM Access Analyzer is enabled with the Jedi Order (AWS Organization) as the zone of trust. A KMS key in the Jedi Temple account has a key policy granting kms:Decrypt to the Outer Rim Trading Co (external account). What does Access Analyzer do?',opts:['Nothing — KMS keys are not analyzed by Access Analyzer','Generates a finding — the KMS key is accessible from outside the zone of trust','Blocks the key policy change automatically','Sends an alert only if the key is used cross-account'],ans:1,explain:'IAM Access Analyzer analyzes KMS keys and generates findings when they\'re accessible from outside the defined zone of trust (in this case, the organization). An external account is outside the org = finding generated.'},
+  {lore:'🌌 The Mandalorian · S3 Encryption',q:'"This is the Way." The Mandalorian\'s clan stores armor blueprints in S3. The Way demands every object be encrypted — uploads without encryption must be rejected at the gate. What enforces this?',opts:['Enable S3 Default Encryption — it auto-encrypts everything','S3 Block Public Access setting','S3 bucket policy with Deny when s3:x-amz-server-side-encryption header is missing or wrong','Enable MFA Delete on the bucket'],ans:2,explain:'S3 Default Encryption encrypts objects after upload but doesn\'t REJECT unencrypted uploads. To reject them, you need a bucket policy with Deny that checks for the absence of the x-amz-server-side-encryption header.'},
+  {lore:'⚖️ The Senate · SCP Truth',q:'The Galactic Senate passes an SCP Deny ec2:* at the root OU. Grand Moff Tarkin, in the MANAGEMENT account with AdministratorAccess, tries to describe EC2 instances. What happens?',opts:['Denied — SCP applies to all accounts including management','Allowed — SCPs never apply to the management account','Denied — but only for destructive EC2 actions','Allowed — AdministratorAccess bypasses SCPs'],ans:1,explain:'SCPs NEVER apply to the management (root) account — this is by design. Tarkin, in the management account, is completely exempt from all SCPs. This is why the management account should never host workloads.'},
+  {lore:'🏆 Final Trial · Detective',q:'After a GuardDuty finding fires on a Rebel base server, the Jedi Council needs to investigate the FULL timeline: what IPs connected, which IAM user acted, how far lateral movement reached. Which service is purpose-built for this investigation?',opts:['CloudTrail Lake with SQL queries','AWS Security Hub investigation tab','Amazon Detective — builds behavior graphs from GuardDuty, CloudTrail, and VPC Flow Logs','AWS Config timeline view'],ans:2,explain:'Amazon Detective automatically ingests GuardDuty findings, CloudTrail, and VPC Flow Logs into a graph model. It shows timelines, IP relationships, user behavior patterns, and lateral movement — exactly what post-incident investigation requires. Security Hub aggregates findings but doesn\'t investigate them.'},
+];
+
+let forcePowers = 3;
+
+function useForcePower() {
+  if (forcePowers <= 0 || gAnswered) return;
+  const q = gQList[gQIndex];
+  const btns = document.querySelectorAll('.force-opt');
+  let eliminated = 0;
+  const wrongIdxs = [];
+  btns.forEach((b, i) => { if (i !== q.ans) wrongIdxs.push(i); });
+  shuffle(wrongIdxs);
+  wrongIdxs.slice(0,2).forEach(i => { btns[i].disabled = true; btns[i].style.opacity = '0.2'; });
+  forcePowers--;
+  const btn = document.getElementById('forcePowerBtn');
+  btn.textContent = `⚡ Use the Force (${forcePowers} left)`;
+  if (forcePowers === 0) btn.disabled = true;
+}
+
+function renderHiScores() {
+  const modes = ['blitz','judge','showdown','force'];
+  const labels = ['hiBlitz','hiJudge','hiShowdown','hiForce'];
+  modes.forEach((m, i) => {
+    const el = document.getElementById(labels[i]);
+    if (!el) return;
+    const v = gameHiScores['hi_' + m];
+    el.textContent = v ? v.toLocaleString() : '—';
+  });
+}
+</script>
+</body>
+</html>
